@@ -44,6 +44,9 @@ export interface Flight {
   progressPercent?: number
   timeRemainingMinutes?: number
   estimatedArrivalTime?: Date
+
+  // Data feed source
+  source?: FlightSource
 }
 
 export interface FlightArc {
@@ -68,4 +71,5 @@ export interface FlightFilters {
   region: 'north_america' | 'global'
 }
 
+export type FlightSource = 'fr24' | 'opensky' | 'mock'
 export type DataSourceMode = 'live' | 'mock'
