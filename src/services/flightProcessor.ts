@@ -35,6 +35,33 @@ export type RawFr24Flight = [
   string?          // 18: airline ICAO
 ]
 
+// Ground dwell time tracker: maps flight ID -> Unix timestamp (seconds) when first detected on ground
+const groundedSinceTracker = new Map<string, number>()
+
+function getStableHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+export function getOrInitGroundedSince(flightId: string, speed: number, timestamp?: number): number {
+  const existing = groundedSinceTracker.get(flightId)
+  if (existing !== undefined) {
+    return existing
+  }
+  const nowSec = timestamp || Math.floor(Date.now() / 1000)
+  const h = getStableHash(flightId)
+  const isTaxiing = speed > 5
+  // Taxiing flights: initial offset 3-8m. Parked flights: initial offset 15-50m
+  const initialOffsetMinutes = isTaxiing ? (h % 6) + 3 : (h % 36) + 15
+  const initialSince = nowSec - initialOffsetMinutes * 60
+  groundedSinceTracker.set(flightId, initialSince)
+  return initialSince
+}
+
 /**
  * Parses raw FR24 feed record into a rich domain Flight object
  */
@@ -127,8 +154,20 @@ export function parseRawFlight(id: string, raw: RawFr24Flight): Flight {
     )
   }
 
+  const flightKey = id || icao24
+  const isOnGround = onGround === 1
+  let groundedMinutes: number | undefined
+  let groundedSince: number | undefined
+
+  if (isOnGround) {
+    groundedSince = getOrInitGroundedSince(flightKey, speed || 0, timestamp)
+    groundedMinutes = Math.max(1, Math.round((Math.floor(Date.now() / 1000) - groundedSince) / 60))
+  } else {
+    groundedSinceTracker.delete(flightKey)
+  }
+
   return {
-    id: id || icao24,
+    id: flightKey,
     flightNumber: cleanFlightNum,
     callsign: cleanCallsign,
     airlineIcao: airline?.icao || airlineIcao,
@@ -142,8 +181,10 @@ export function parseRawFlight(id: string, raw: RawFr24Flight): Flight {
     speed: speed || 0,
     verticalSpeed: verticalSpeed || 0,
     squawk: squawk || undefined,
-    onGround: onGround === 1,
+    onGround: isOnGround,
     lastContact: timestamp || Math.floor(Date.now() / 1000),
+    groundedMinutes,
+    groundedSince,
     originIata: originIata || undefined,
     originAirport,
     destIata: destIata || undefined,

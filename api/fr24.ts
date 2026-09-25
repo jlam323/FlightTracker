@@ -48,7 +48,7 @@ export default async function handler(req: Request): Promise<Response> {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Cache-Control': 'public, max-age=5, s-maxage=5',
+        'Cache-Control': 'public, max-age=25, s-maxage=25, stale-while-revalidate=15',
       },
     })
   } catch (err: unknown) {

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   RefreshCw,
   Globe,
@@ -9,6 +9,10 @@ import {
   Redo,
 } from 'lucide-react'
 import { FlightFilters } from '../../types/flight'
+import {
+  getRefreshCooldownRemainingSeconds,
+  recordRefreshInCookie,
+} from '../../utils/cookies'
 
 interface HeaderProps {
   filters: FlightFilters
@@ -58,6 +62,48 @@ export const Header: React.FC<HeaderProps> = ({
       region: newRegion,
     })
   }
+
+  // 10-second anti-spam cooldown for manual refresh (persisted in cookies across all tabs)
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(() =>
+    getRefreshCooldownRemainingSeconds()
+  )
+
+  const syncCooldown = useCallback(() => {
+    const remaining = getRefreshCooldownRemainingSeconds()
+    setCooldownSeconds(remaining)
+    return remaining
+  }, [])
+
+  useEffect(() => {
+    const handleSync = () => {
+      syncCooldown()
+    }
+
+    window.addEventListener('focus', handleSync)
+    document.addEventListener('visibilitychange', handleSync)
+
+    return () => {
+      window.removeEventListener('focus', handleSync)
+      document.removeEventListener('visibilitychange', handleSync)
+    }
+  }, [syncCooldown])
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return
+    const timer = setInterval(() => {
+      const remaining = getRefreshCooldownRemainingSeconds()
+      setCooldownSeconds(remaining)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [cooldownSeconds])
+
+  const handleManualRefresh = useCallback(() => {
+    const remaining = syncCooldown()
+    if (isLoading || isRefreshing || remaining > 0) return
+    recordRefreshInCookie()
+    setCooldownSeconds(10)
+    onRefresh()
+  }, [isLoading, isRefreshing, syncCooldown, onRefresh])
 
   return (
     <header className="absolute top-0 left-0 right-0 z-20 bg-[#090a0f]/90 backdrop-blur-md border-b border-white/[0.08] px-4 py-2 flex items-center justify-between text-neutral-100 shadow-md">
@@ -195,15 +241,29 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </button>
 
-        {/* Manual Refresh Button */}
+        {/* Manual Refresh Button with 10s anti-spam cooldown */}
         <button
-          onClick={onRefresh}
-          disabled={isLoading || isRefreshing}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-neutral-900/80 hover:bg-neutral-800 border border-white/[0.08] text-neutral-300 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
-          title={`Last updated: ${lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}`}
+          onClick={handleManualRefresh}
+          disabled={isLoading || isRefreshing || cooldownSeconds > 0}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-neutral-900/80 hover:bg-neutral-800 border border-white/[0.08] text-neutral-300 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer tabular-nums"
+          title={
+            cooldownSeconds > 0
+              ? `Refresh cooldown: wait ${cooldownSeconds}s`
+              : `Last updated: ${lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}`
+          }
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-sky-400' : 'text-neutral-400'}`} />
-          <span className="hidden sm:inline">Refresh</span>
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${
+              isRefreshing
+                ? 'animate-spin text-sky-400'
+                : cooldownSeconds > 0
+                ? 'text-neutral-500'
+                : 'text-neutral-400'
+            }`}
+          />
+          <span className="hidden sm:inline">
+            {cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : 'Refresh'}
+          </span>
         </button>
       </div>
     </header>

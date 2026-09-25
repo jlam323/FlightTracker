@@ -51,6 +51,10 @@ export interface Flight {
   // Live vs Last-Known status
   isLive?: boolean
   lastKnown?: boolean
+
+  // Ground telemetry & dwell time
+  groundedMinutes?: number
+  groundedSince?: number
 }
 
 export interface FlightArc {

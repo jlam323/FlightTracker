@@ -35,8 +35,11 @@ export const AIRLINES: Record<string, Airline> = {
   AMX: { icao: 'AMX', iata: 'AM', name: 'Aeromexico', callsign: 'AEROMEXICO', country: 'Mexico' },
   VOI: { icao: 'VOI', iata: 'Y4', name: 'Volaris', callsign: 'VOLARIS', country: 'Mexico' },
   FDX: { icao: 'FDX', iata: 'FX', name: 'FedEx Express', callsign: 'FEDEX', country: 'United States' },
-  UPS: { icao: 'UPS', iata: '5X', name: 'UPS Airlines', callsign: 'UPS', country: 'United States' },
 }
+
+export const SORTED_AIRLINES: Airline[] = Object.values(AIRLINES).sort((a, b) =>
+  a.name.localeCompare(b.name)
+)
 
 export function getAirline(icaoOrCode?: string): Airline | undefined {
   if (!icaoOrCode) return undefined

@@ -1,5 +1,6 @@
 import { Flight } from '../types/flight'
 import { detectAirlineFromCallsign } from '../data/airlines'
+import { getOrInitGroundedSince } from '../services/flightProcessor'
 
 /**
  * OpenSky Network State Vector tuple format:
@@ -106,6 +107,13 @@ export async function fetchOpenSkyFeed(
     const airline = detectAirlineFromCallsign(callsign)
     const flightNumber = callsign || icao24.toUpperCase()
 
+    let groundedMinutes: number | undefined
+    let groundedSince: number | undefined
+    if (onGround) {
+      groundedSince = getOrInitGroundedSince(icao24, speedKnots, timestamp)
+      groundedMinutes = Math.max(1, Math.round((Math.floor(Date.now() / 1000) - groundedSince) / 60))
+    }
+
     flights.push({
       id: icao24,
       flightNumber,
@@ -121,6 +129,8 @@ export async function fetchOpenSkyFeed(
       squawk,
       onGround,
       lastContact: timestamp,
+      groundedMinutes,
+      groundedSince,
     })
   }
 

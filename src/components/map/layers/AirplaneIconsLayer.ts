@@ -10,6 +10,7 @@ export interface AirplaneIconsLayerProps {
   pinnedSet: Set<string>
   bearing: number
   searchQuery?: string
+  selectedAirportCode?: string
   onClickFlight?: (info: { object?: unknown }) => void
   onHoverFlight?: (info: { object?: unknown }) => void
 }
@@ -21,14 +22,26 @@ export function createAirplaneIconsLayer({
   pinnedSet,
   bearing,
   searchQuery,
+  selectedAirportCode,
   onClickFlight,
   onHoverFlight,
 }: AirplaneIconsLayerProps): IconLayer<Flight> {
   const hasSearch = Boolean(searchQuery?.trim())
   const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
+  const cleanAirport = selectedAirportCode?.trim().toUpperCase()
 
   const visibleFlights = flights.filter(f => {
     if (!f.onGround || f.id === selectedFlightId || pinnedSet.has(f.id)) return true
+    if (cleanAirport) {
+      if (
+        f.originIata?.toUpperCase() === cleanAirport ||
+        f.destIata?.toUpperCase() === cleanAirport ||
+        f.originAirport?.iata.toUpperCase() === cleanAirport ||
+        f.destAirport?.iata.toUpperCase() === cleanAirport
+      ) {
+        return true
+      }
+    }
     if (hasSearch) {
       return (
         f.flightNumber.toUpperCase().includes(cleanQuery) ||
@@ -78,9 +91,9 @@ export function createAirplaneIconsLayer({
     onClick: onClickFlight,
     onHover: onHoverFlight,
     updateTriggers: {
-      getPosition: [selectedFlightId, searchQuery],
+      getPosition: [selectedFlightId, searchQuery, selectedAirportCode],
       getSize: [selectedFlightId, hoveredFlightId],
-      getColor: [selectedFlightId, hoveredFlightId, searchQuery],
+      getColor: [selectedFlightId, hoveredFlightId, searchQuery, selectedAirportCode],
       getAngle: [bearing],
     },
   })

@@ -1,4 +1,4 @@
-import { Flight, FlightArc, FlightSource } from '../types/flight'
+import { Flight, FlightArc, FlightSource, Airport } from '../types/flight'
 import { parseRawFlight, buildFlightArcs, RawFr24Flight } from '../services/flightProcessor'
 import { getAirport } from '../data/airports'
 import { interpolateGreatCirclePoint, calculateBearing } from '../utils/geo'
@@ -72,7 +72,8 @@ function getSimulatedMockFeed(): Record<string, RawFr24Flight> {
 export async function fetchFlightFeed(
   region: 'north_america' | 'global' = 'north_america',
   forceMock = false,
-  highlightedFlightId?: string
+  highlightedFlightId?: string,
+  selectedAirport?: Airport | null
 ): Promise<FlightFeedResponse> {
   // If explicitly forced to mock mode
   if (forceMock) {
@@ -115,6 +116,36 @@ export async function fetchFlightFeed(
         const flight = parseRawFlight(key, value as RawFr24Flight)
         flight.source = 'fr24'
         flights.push(flight)
+      }
+    }
+
+    // 1b. If an airport is selected, query its local zone to capture all live ground flights
+    // (FR24 suppresses ground traffic on continent-scale bounds)
+    if (selectedAirport) {
+      try {
+        const airportBounds = `${(selectedAirport.latitude + 0.25).toFixed(4)},${(selectedAirport.latitude - 0.25).toFixed(4)},${(selectedAirport.longitude - 0.35).toFixed(4)},${(selectedAirport.longitude + 0.35).toFixed(4)}`
+        const airportUrl = `${import.meta.env.BASE_URL}api/fr24?bounds=${airportBounds}&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1`
+        const airportRes = await fetch(airportUrl, {
+          headers: { Accept: 'application/json' },
+        })
+        if (airportRes.ok) {
+          const airportData = await airportRes.json()
+          const seenIds = new Set(flights.map(f => f.id))
+          for (const [key, value] of Object.entries(airportData)) {
+            if (Array.isArray(value) && value.length >= 14 && !seenIds.has(key)) {
+              const flight = parseRawFlight(key, value as RawFr24Flight)
+              flight.source = 'fr24'
+              if (flight.onGround && !flight.originIata && !flight.destIata) {
+                flight.originIata = selectedAirport.iata
+                flight.originAirport = selectedAirport
+              }
+              flights.push(flight)
+              seenIds.add(key)
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[FlightFeed] Airport ground live fetch error:', err)
       }
     }
 

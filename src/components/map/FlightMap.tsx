@@ -8,6 +8,7 @@ import { Flight, FlightArc, Airport } from '../../types/flight'
 import { ALL_AIRPORTS } from '../../data/airports'
 import { CARTO_DARK_RASTER_STYLE, CARTO_API_KEY } from './mapConstants'
 import {
+  createCountryBordersLayer,
   createRouteArcsLayer,
   createAirportDotsLayer,
   createAirportLabelsLayer,
@@ -85,7 +86,13 @@ export const FlightMap: React.FC<FlightMapProps> = ({
           Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
           f.id.toUpperCase().includes(cleanQuery)
         )
-        if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id)) continue
+        const matchesAirport = selectedAirportCode && (
+          f.originIata?.toUpperCase() === selectedAirportCode.toUpperCase() ||
+          f.destIata?.toUpperCase() === selectedAirportCode.toUpperCase() ||
+          f.originAirport?.iata.toUpperCase() === selectedAirportCode.toUpperCase() ||
+          f.destAirport?.iata.toUpperCase() === selectedAirportCode.toUpperCase()
+        )
+        if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) continue
         const inLon =
           minLon <= maxLon
             ? f.longitude >= minLon && f.longitude <= maxLon
@@ -98,7 +105,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     } catch {
       return flights.length
     }
-  }, [flights, selectedFlightId, pinnedSet, searchQuery, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
+  }, [flights, selectedFlightId, pinnedSet, searchQuery, selectedAirportCode, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
 
   // Dynamically scale max aircraft allowed for displaying flight IDs with zoom level
   const maxPlanesForLabels = useMemo(() => {
@@ -215,6 +222,8 @@ export const FlightMap: React.FC<FlightMapProps> = ({
 
   // Stack all map layers
   const layers = useMemo(() => {
+    const bordersLayer = createCountryBordersLayer()
+
     const arcLayers = createRouteArcsLayer({
       arcs: sortedArcs,
       selectedFlightId,
@@ -255,6 +264,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       pinnedSet,
       bearing: viewState.bearing,
       searchQuery,
+      selectedAirportCode,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -266,6 +276,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       hoveredFlightId,
       pinnedSet,
       searchQuery,
+      selectedAirportCode,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -279,6 +290,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     return [
+      bordersLayer,
       ...arcLayers,
       airportDotsLayer,
       ...(airportLabelsLayer ? [airportLabelsLayer] : []),

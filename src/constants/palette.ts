@@ -16,6 +16,9 @@ export const MAP_PALETTE = {
   EMERALD: [52, 211, 153, 255] as ColorRGBA,       // Climb / Approach (#34d399)
   SLATE_GROUND: [148, 163, 184, 220] as ColorRGBA, // Ground / Taxiing aircraft
 
+  // Map Basemap Enhancements
+  BORDER_GRAY: [148, 163, 184, 65] as ColorRGBA,   // Subtle country land borders (#94a3b8 @ ~25%)
+
   // Airport Markers & Waypoints
   AIRPORT_DOT: [186, 200, 222, 225] as ColorRGBA,  // Cool Platinum Ice airport marker
 

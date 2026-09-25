@@ -42,7 +42,49 @@ interface FlightTimingInfo {
   badgeClass: string
 }
 
-function getFlightTimingDetails(flight: Flight, airport: Airport): FlightTimingInfo {
+function getInboundArrivalTimestamp(flight: Flight, airport: Airport): number {
+  if (flight.estimatedArrivalTime instanceof Date && !isNaN(flight.estimatedArrivalTime.getTime())) {
+    return flight.estimatedArrivalTime.getTime()
+  }
+  if (typeof flight.timeRemainingMinutes === 'number' && !isNaN(flight.timeRemainingMinutes)) {
+    return Date.now() + flight.timeRemainingMinutes * 60 * 1000
+  }
+  const dist = calculateDistanceNm(
+    flight.latitude,
+    flight.longitude,
+    airport.latitude,
+    airport.longitude
+  )
+  const speed = flight.speed > 50 ? flight.speed : 450
+  return Date.now() + (dist / speed) * 3600 * 1000
+}
+
+function getOutboundElapsedMinutes(flight: Flight, airport: Airport): number {
+  if (
+    flight.distanceTotalNm &&
+    flight.distanceRemainingNm &&
+    flight.speed > 50
+  ) {
+    const flown = Math.max(0, flight.distanceTotalNm - flight.distanceRemainingNm)
+    return Math.round((flown / flight.speed) * 60)
+  }
+  const dist = calculateDistanceNm(
+    airport.latitude,
+    airport.longitude,
+    flight.latitude,
+    flight.longitude
+  )
+  if (flight.speed > 50) {
+    return Math.round((dist / flight.speed) * 60)
+  }
+  return 0
+}
+
+function getFlightTimingDetails(
+  flight: Flight,
+  airport: Airport,
+  activeTab?: AirportTab
+): FlightTimingInfo {
   const code = airport.iata.toUpperCase()
   const isDest =
     flight.destIata?.toUpperCase() === code ||
@@ -51,12 +93,33 @@ function getFlightTimingDetails(flight: Flight, airport: Airport): FlightTimingI
     flight.originIata?.toUpperCase() === code ||
     flight.originAirport?.iata.toUpperCase() === code
 
-  // 1. INBOUND FLIGHT (heading towards this airport)
+  // 1. GROUND TAB or GROUND FLIGHT (when on ground tab, prioritize surface operational status)
+  if (activeTab === 'ground' || (flight.onGround && activeTab !== 'outbound' && activeTab !== 'inbound')) {
+    const isTaxiing = flight.speed > 5
+    if (isTaxiing) {
+      const taxiMins = flight.groundedMinutes ? `${flight.groundedMinutes}m` : 'active'
+      return {
+        badgeText: `Taxiing • ${flight.speed} kts`,
+        subText: `On ground ${taxiMins}`,
+        badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+      }
+    }
+
+    const durationStr = flight.groundedMinutes ? formatDuration(flight.groundedMinutes) : 'Parked'
+    return {
+      badgeText: `Grounded ${durationStr}`,
+      subText: isOrigin ? 'At gate / Boarding' : 'Parked at gate',
+      badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
+    }
+  }
+
+  // 2. INBOUND FLIGHT (heading towards this airport)
   if (isDest && !isOrigin) {
     if (flight.onGround) {
+      const isTaxiing = flight.speed > 5
       return {
         badgeText: 'Landed',
-        subText: flight.speed > 5 ? 'Taxiing to gate' : 'Parked at gate',
+        subText: isTaxiing ? `Taxiing to gate (${flight.speed} kts)` : 'Parked at gate',
         badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
       }
     }
@@ -86,7 +149,7 @@ function getFlightTimingDetails(flight: Flight, airport: Airport): FlightTimingI
     }
   }
 
-  // 2. OUTBOUND FLIGHT (originating from this airport)
+  // 3. OUTBOUND FLIGHT (originating from this airport)
   if (isOrigin) {
     if (flight.onGround) {
       // Ground flight getting ready to depart
@@ -94,36 +157,15 @@ function getFlightTimingDetails(flight: Flight, airport: Airport): FlightTimingI
       const departureMins = isTaxiing ? 10 : 20
       return {
         badgeText: `Departs in ~${departureMins}m`,
-        subText: isTaxiing ? 'Taxiing to runway' : 'At gate / Boarding',
+        subText: isTaxiing ? `Taxiing to runway (${flight.speed} kts)` : 'At gate / Boarding',
         badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
       }
     }
 
     // Airborne outbound flight (has departed)
-    let elapsedMinutes: number | undefined
-    if (
-      flight.distanceTotalNm &&
-      flight.distanceRemainingNm &&
-      flight.speed > 50
-    ) {
-      const flown = Math.max(0, flight.distanceTotalNm - flight.distanceRemainingNm)
-      elapsedMinutes = Math.round((flown / flight.speed) * 60)
-    } else {
-      const dist = calculateDistanceNm(
-        airport.latitude,
-        airport.longitude,
-        flight.latitude,
-        flight.longitude
-      )
-      if (flight.speed > 50) {
-        elapsedMinutes = Math.round((dist / flight.speed) * 60)
-      }
-    }
-
+    const elapsedMinutes = getOutboundElapsedMinutes(flight, airport)
     const elapsedDisplay =
-      elapsedMinutes !== undefined && elapsedMinutes > 0
-        ? `Departed ${formatDuration(elapsedMinutes)} ago`
-        : 'Just departed'
+      elapsedMinutes > 0 ? `Departed ${formatDuration(elapsedMinutes)} ago` : 'Just departed'
 
     return {
       badgeText: elapsedDisplay,
@@ -135,11 +177,12 @@ function getFlightTimingDetails(flight: Flight, airport: Airport): FlightTimingI
     }
   }
 
-  // 3. FALLBACK / GENERAL GROUND
+  // 4. FALLBACK / GENERAL GROUND
   if (flight.onGround) {
+    const isTaxiing = flight.speed > 5
     return {
-      badgeText: 'On Ground',
-      subText: flight.speed > 5 ? 'Taxiing' : 'Parked',
+      badgeText: isTaxiing ? `Taxiing • ${flight.speed} kts` : 'On Ground',
+      subText: flight.groundedMinutes ? `Grounded ${formatDuration(flight.groundedMinutes)}` : 'Parked',
       badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
     }
   }
@@ -223,21 +266,29 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
   }
 
   // Inbound flights: destination matches this airport and currently in-flight
+  // Sorted by earliest to arrive (smallest arrival timestamp first)
   const inboundFlights = useMemo(() => {
     if (!airport) return []
     const code = airport.iata.toUpperCase()
-    return filteredCandidateFlights.filter(
+    const list = filteredCandidateFlights.filter(
       f =>
         !f.onGround &&
         (f.destIata?.toUpperCase() === code || f.destAirport?.iata.toUpperCase() === code)
     )
+
+    return list.sort((a, b) => {
+      const aEta = getInboundArrivalTimestamp(a, airport)
+      const bEta = getInboundArrivalTimestamp(b, airport)
+      return aEta - bEta
+    })
   }, [filteredCandidateFlights, airport])
 
   // Outbound flights: origin matches this airport (both airborne departures and departing ground flights)
+  // Sorted by earliest to depart: upcoming ground departures first (~10m taxi before ~20m gate), then airborne by recent departure
   const outboundFlights = useMemo(() => {
     if (!airport) return []
     const code = airport.iata.toUpperCase()
-    return filteredCandidateFlights.filter(f => {
+    const list = filteredCandidateFlights.filter(f => {
       const isOrigin =
         f.originIata?.toUpperCase() === code || f.originAirport?.iata.toUpperCase() === code
       if (!isOrigin) return false
@@ -249,14 +300,35 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
         f.latitude,
         f.longitude
       )
-      return distFromAirport < 25
+      return distFromAirport < 10
+    })
+
+    return list.sort((a, b) => {
+      // 1. Upcoming departures on the ground come first
+      if (a.onGround && !b.onGround) return -1
+      if (!a.onGround && b.onGround) return 1
+
+      if (a.onGround && b.onGround) {
+        // Taxiing departs in ~10m before gate in ~20m
+        const aMins = a.speed > 5 ? 10 : 20
+        const bMins = b.speed > 5 ? 10 : 20
+        if (aMins !== bMins) return aMins - bMins
+        return (a.groundedMinutes ?? 0) - (b.groundedMinutes ?? 0)
+      }
+
+      // 2. Airborne flights: most recently departed first (shortest elapsed time)
+      const aElapsed = getOutboundElapsedMinutes(a, airport)
+      const bElapsed = getOutboundElapsedMinutes(b, airport)
+      return aElapsed - bElapsed
     })
   }, [filteredCandidateFlights, airport])
 
   // Ground flights: onGround is true and aircraft is physically located at this airport
+  // Prioritize taxiing flights, then shortest to longest grounded time
   const groundFlights = useMemo(() => {
     if (!airport) return []
-    return filteredCandidateFlights.filter(f => {
+    const code = airport.iata.toUpperCase()
+    const list = filteredCandidateFlights.filter(f => {
       if (!f.onGround) return false
       const dist = calculateDistanceNm(
         airport.latitude,
@@ -264,7 +336,25 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
         f.latitude,
         f.longitude
       )
-      return dist < 25
+      const matchesAirportCode =
+        f.originIata?.toUpperCase() === code ||
+        f.originAirport?.iata.toUpperCase() === code ||
+        f.destIata?.toUpperCase() === code ||
+        f.destAirport?.iata.toUpperCase() === code
+      return dist < 4.5 || (matchesAirportCode && dist < 15)
+    })
+
+    return list.sort((a, b) => {
+      const aTaxiing = a.speed > 5
+      const bTaxiing = b.speed > 5
+      if (aTaxiing && !bTaxiing) return -1
+      if (!aTaxiing && bTaxiing) return 1
+      const aTime = a.groundedMinutes ?? 0
+      const bTime = b.groundedMinutes ?? 0
+      if (aTime !== bTime) {
+        return aTime - bTime
+      }
+      return b.speed - a.speed
     })
   }, [filteredCandidateFlights, airport])
 
@@ -492,7 +582,7 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
             const originStr = flight.originIata || flight.originAirport?.iata || '---'
             const destStr = flight.destIata || flight.destAirport?.iata || '---'
             const airlineDisplay = flight.airlineName || flight.airlineIcao || 'Commercial Flight'
-            const timing = getFlightTimingDetails(flight, airport)
+            const timing = getFlightTimingDetails(flight, airport, activeTab)
 
             return (
               <div

@@ -59,6 +59,7 @@ export const App: React.FC = () => {
     region: filters.region,
     forceMock: forceMockMode,
     selectedFlightId: selectedFlightId || undefined,
+    selectedAirport,
     pollIntervalMs: 60000,
   })
 

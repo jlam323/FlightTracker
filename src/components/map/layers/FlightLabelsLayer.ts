@@ -9,6 +9,7 @@ export interface FlightLabelsLayerProps {
   hoveredFlightId: string | null
   pinnedSet: Set<string>
   searchQuery?: string
+  selectedAirportCode?: string
   onClickFlight?: (info: { object?: unknown }) => void
   onHoverFlight?: (info: { object?: unknown }) => void
 }
@@ -20,11 +21,13 @@ export function createFlightLabelsLayer({
   hoveredFlightId,
   pinnedSet,
   searchQuery,
+  selectedAirportCode,
   onClickFlight,
   onHoverFlight,
 }: FlightLabelsLayerProps): TextLayer<Flight> | null {
   const hasSearch = Boolean(searchQuery?.trim())
   const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
+  const cleanAirport = selectedAirportCode?.trim().toUpperCase()
 
   const labelFlights = flights.filter(f => {
     const matchesSearch = hasSearch && (
@@ -34,8 +37,16 @@ export function createFlightLabelsLayer({
       f.id.toUpperCase().includes(cleanQuery)
     )
 
-    if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id)) return false
+    const matchesAirport = cleanAirport && (
+      f.originIata?.toUpperCase() === cleanAirport ||
+      f.destIata?.toUpperCase() === cleanAirport ||
+      f.originAirport?.iata.toUpperCase() === cleanAirport ||
+      f.destAirport?.iata.toUpperCase() === cleanAirport
+    )
+
+    if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) return false
     if (matchesSearch) return true
+    if (matchesAirport) return true
     if (shouldShowFlightLabels) return true
     if (f.id === selectedFlightId || f.id === hoveredFlightId || pinnedSet.has(f.id)) return true
     return false

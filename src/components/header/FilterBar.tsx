@@ -10,7 +10,7 @@ import {
   BookmarkCheck,
 } from 'lucide-react'
 import { Flight, FlightFilters } from '../../types/flight'
-import { AIRLINES } from '../../data/airlines'
+import { SORTED_AIRLINES } from '../../data/airlines'
 import { FlightStateFilter } from './FlightStateFilter'
 
 interface FilterBarProps {
@@ -84,7 +84,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-7 pr-6 py-1.5 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 transition-all appearance-none cursor-pointer text-xs"
         >
           <option value="">All Airlines</option>
-          {Object.values(AIRLINES).map(a => (
+          {SORTED_AIRLINES.map(a => (
             <option key={a.icao} value={a.icao}>
               {a.name} ({a.icao})
             </option>
