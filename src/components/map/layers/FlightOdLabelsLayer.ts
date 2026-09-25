@@ -47,7 +47,7 @@ export function createFlightOdLabelsLayer({
     data,
     getPosition: d => [d.longitude, d.latitude, 0],
     getText: d => d.odText,
-    getSize: 10,
+    getSize: 12,
     getColor: PALETTE.TEXT_OD,
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'top',

@@ -18,8 +18,8 @@ export const App: React.FC = () => {
     airlineIcao: '',
     originAirport: '',
     destAirport: '',
-    hideOnGround: false,
   })
+
 
   // 2. Map Camera ViewState
   const [viewState, setViewState] = useState({
@@ -62,8 +62,8 @@ export const App: React.FC = () => {
 
   // 6. Filter active flights
   const filteredFlights = useMemo(() => {
-    return filterFlights(flights, filters)
-  }, [flights, filters])
+    return filterFlights(flights, filters, pinnedIds)
+  }, [flights, filters, pinnedIds])
 
   // Filter arcs to match filtered flights
   const activeFlightIdSet = useMemo(() => {
@@ -93,9 +93,11 @@ export const App: React.FC = () => {
       filters.airlineIcao ||
       filters.originAirport.trim() ||
       filters.destAirport.trim() ||
-      filters.airportCode
+      filters.airportCode ||
+      (filters.flightStates && filters.flightStates.length > 0)
     )
   }, [filters])
+
 
   // Camera Actions - Always maintain pure top-down perspective (pitch: 0)
   const handleFlyTo = useCallback((lat: number, lon: number, zoom = 7.5) => {
@@ -121,14 +123,8 @@ export const App: React.FC = () => {
     handleFlyTo(airport.latitude, airport.longitude, 7.0)
   }, [handleFlyTo])
 
-  const handleResetBearing = useCallback(() => {
-    setViewState(prev => ({
-      ...prev,
-      bearing: 0,
-    }))
-  }, [])
-
   const handleZoom = useCallback((delta: number) => {
+
     setViewState(prev => ({
       ...prev,
       zoom: Math.min(12, Math.max(2, prev.zoom + delta)),
@@ -159,11 +155,12 @@ export const App: React.FC = () => {
       <FilterBar
         filters={filters}
         onFiltersChange={setFilters}
-        totalCount={flights.length}
-        filteredCount={filteredFlights.length}
-        showAirportCodes={showAirportCodes}
-        onToggleAirportCodes={handleToggleAirportCodes}
+        flights={flights}
+        pinnedIds={pinnedIds}
       />
+
+
+
 
       {/* 3. Main Deck.gl + MapLibre Map */}
       <FlightMap
@@ -182,12 +179,12 @@ export const App: React.FC = () => {
 
       {/* 4. Map Camera & Hub Controls */}
       <MapControls
-        onResetBearing={handleResetBearing}
         onZoom={handleZoom}
         onFlyTo={handleFlyTo}
         showAirportCodes={showAirportCodes}
         onToggleAirportCodes={handleToggleAirportCodes}
       />
+
 
       {/* 5. Selected Flight Detail Inspector Drawer */}
       <FlightDetailDrawer

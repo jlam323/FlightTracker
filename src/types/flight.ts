@@ -66,15 +66,24 @@ export interface FlightArc {
   remTarget?: [number, number]
 }
 
+export type FlightState =
+  | 'high_cruise'
+  | 'mid_altitude'
+  | 'climb_approach'
+  | 'on_ground'
+  | 'pinned'
+
 export interface FlightFilters {
   searchQuery: string           // Matches flightNumber or callsign
   airlineIcao: string           // Matches airline prefix
   originAirport: string         // Origin IATA or ICAO
   destAirport: string           // Destination IATA or ICAO
   airportCode?: string          // Matches either Origin OR Destination IATA/ICAO
-  hideOnGround: boolean         // Filter out parked / taxiing planes
+  hideOnGround?: boolean        // Optional: Filter out parked / taxiing planes
   region: 'north_america' | 'global'
+  flightStates?: FlightState[]  // Filter by altitude / status flight states
 }
+
 
 export type FlightSource = 'fr24' | 'opensky' | 'mock'
 export type DataSourceMode = 'live' | 'mock'

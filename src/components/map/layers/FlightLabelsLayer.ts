@@ -34,7 +34,7 @@ export function createFlightLabelsLayer({
     data: labelFlights,
     getPosition: d => [d.longitude, d.latitude, 0],
     getText: d => d.flightNumber,
-    getSize: 11,
+    getSize: 12,
     getColor: d => {
       if (d.id === selectedFlightId || d.id === hoveredFlightId) return PALETTE.YELLOW
       return PALETTE.TEXT_DEFAULT

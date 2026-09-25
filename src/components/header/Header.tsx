@@ -1,13 +1,12 @@
 import React from 'react'
 import {
-  Plane,
   RefreshCw,
   Globe,
   MapPin,
   Radio,
   Bookmark,
-  Sparkles,
   Clock,
+  Redo,
 } from 'lucide-react'
 import { FlightFilters } from '../../types/flight'
 
@@ -63,34 +62,38 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Brand & Stats */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-400">
-            <Plane className="w-5 h-5 -rotate-45" />
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-700/80 shadow-md">
+            <img src="/favicon.svg" alt="Flight Tracker" className="w-5 h-5 object-contain" />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
           </div>
+
           <div>
             <h1 className="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
-              SkyTrack
+              Flight Tracker
             </h1>
           </div>
+
         </div>
 
         {/* Live Counters */}
         <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/90 border border-slate-800 px-3 py-1 rounded-full">
+          <span className="text-slate-500 font-normal">Showing</span>
+
           <span className="flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
             <span className="text-slate-100 font-semibold">{flightCount.toLocaleString()}</span>
             {totalFlightCount !== undefined && totalFlightCount !== flightCount && (
               <span className="text-slate-500 font-normal">/{totalFlightCount.toLocaleString()}</span>
             )}{' '}
-            Active
+            Flights
           </span>
           <span className="text-slate-600">•</span>
           <span className="flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-sky-400" />
-            <span className="text-sky-300 font-semibold">{arcCount.toLocaleString()}</span> 3D Arcs
+            <Redo className="w-3 h-3 text-sky-400" />
+            <span className="text-sky-300 font-semibold">{arcCount.toLocaleString()}</span> Arcs
           </span>
         </div>
       </div>
