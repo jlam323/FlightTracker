@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/fr24/:path*",
+      "destination": "/api/fr24"
+    },
+    {
+      "source": "/api/opensky/:path*",
+      "destination": "/api/opensky"
+    }
+  ]
+}

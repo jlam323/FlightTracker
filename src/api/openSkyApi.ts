@@ -56,7 +56,7 @@ const MS_TO_FPM = 196.85 // meters/sec to feet/minute
 export async function fetchOpenSkyFeed(
   region: 'north_america' | 'global' = 'north_america'
 ): Promise<Flight[]> {
-  let url = '/api/opensky/api/states/all'
+  let url = `${import.meta.env.BASE_URL}api/opensky`
 
   // Restrict to North America bounding box when in NA mode
   if (region === 'north_america') {

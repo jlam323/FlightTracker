@@ -95,7 +95,7 @@ export async function fetchFlightFeed(
   // 1. Try Primary: Flightradar24 Feed
   try {
     const boundsParam = region === 'north_america' ? `bounds=${FR24_NA_BOUNDS}&` : ''
-    const url = `/api/fr24/zones/fcgi/feed.js?${boundsParam}faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0`
+    const url = `${import.meta.env.BASE_URL}api/fr24?${boundsParam}faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0`
 
     const response = await fetch(url, {
       headers: {
