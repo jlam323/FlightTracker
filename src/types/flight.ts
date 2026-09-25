@@ -70,7 +70,6 @@ export type FlightState =
   | 'high_cruise'
   | 'mid_altitude'
   | 'climb_approach'
-  | 'on_ground'
   | 'pinned'
 
 export interface FlightFilters {

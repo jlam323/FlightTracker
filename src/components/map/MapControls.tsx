@@ -1,56 +1,92 @@
 import React from 'react'
 import { ZoomIn, ZoomOut, MapPin } from 'lucide-react'
+import { Airport } from '../../types/flight'
 
 interface MapControlsProps {
   onZoom: (delta: number) => void
   onFlyTo: (lat: number, lon: number, zoom: number) => void
   showAirportCodes?: boolean
   onToggleAirportCodes?: () => void
+  bookmarkedAirports?: Airport[]
+  selectedAirportIata?: string
+  onSelectAirport?: (airport: Airport) => void
+  onResetToAll?: () => void
 }
-
-const HUBS = [
-  { name: 'All (NA)', lat: 39.8, lon: -98.5, zoom: 3.8 },
-  { name: 'JFK (NYC)', lat: 40.64, lon: -73.78, zoom: 7.5 },
-  { name: 'YYZ (Toronto)', lat: 43.68, lon: -79.62, zoom: 7.5 },
-]
 
 export const MapControls: React.FC<MapControlsProps> = ({
   onZoom,
   onFlyTo,
   showAirportCodes = true,
   onToggleAirportCodes,
+  bookmarkedAirports = [],
+  selectedAirportIata,
+  onSelectAirport,
+  onResetToAll,
 }) => {
-
   return (
     <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2">
-      {/* Quick Hub Bookmarks */}
-      <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-xl w-fit">
-        {HUBS.map((hub, index) => (
-          <React.Fragment key={hub.name}>
-            {index > 0 && <div className="h-3.5 w-px bg-slate-800 shrink-0" />}
-            <button
-              onClick={() => onFlyTo(hub.lat, hub.lon, hub.zoom)}
-              className="px-2 py-1 rounded-md text-[11px] font-mono text-slate-300 hover:text-white hover:bg-sky-600/30 transition-all border border-transparent hover:border-sky-500/40 cursor-pointer"
-            >
-              {hub.name}
-            </button>
-          </React.Fragment>
-        ))}
-      </div>
+      {/* Bookmarked Airport List (Includes 'All (NA)' at minimum) */}
+      <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-xl w-fit max-w-[calc(100vw-2rem)] sm:max-w-xl overflow-x-auto scrollbar-none">
+        {/* Minimum Option: All (NA) */}
+        <button
+          onClick={() => {
+            if (onResetToAll) {
+              onResetToAll()
+            } else {
+              onFlyTo(39.8, -98.5, 3.8)
+            }
+          }}
+          className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
+            !selectedAirportIata
+              ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
+              : 'text-slate-300 hover:text-white hover:bg-sky-600/30 border-transparent hover:border-sky-500/40'
+          }`}
+          title="All (North America)"
+        >
+          All (NA)
+        </button>
 
+        {bookmarkedAirports.map(airport => {
+          const isSelected = selectedAirportIata?.toUpperCase() === airport.iata.toUpperCase()
+          const label = airport.city ? `${airport.iata} (${airport.city})` : airport.iata
+
+          return (
+            <React.Fragment key={airport.iata}>
+              <div className="h-3.5 w-px bg-slate-800 shrink-0" />
+              <button
+                onClick={() => {
+                  if (onSelectAirport) {
+                    onSelectAirport(airport)
+                  } else {
+                    onFlyTo(airport.latitude, airport.longitude, 7.5)
+                  }
+                }}
+                className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
+                  isSelected
+                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-sky-600/30 border-transparent hover:border-sky-500/40'
+                }`}
+                title={`Fly to ${airport.name}`}
+              >
+                {label}
+              </button>
+            </React.Fragment>
+          )
+        })}
+      </div>
 
       {/* Camera & Overlay Controls */}
       <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-xl w-fit">
         <button
           onClick={() => onZoom(0.5)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => onZoom(-0.5)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
@@ -76,7 +112,6 @@ export const MapControls: React.FC<MapControlsProps> = ({
             </div>
           </div>
         )}
-
       </div>
     </div>
   )

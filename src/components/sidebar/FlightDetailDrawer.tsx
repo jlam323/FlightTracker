@@ -21,6 +21,7 @@ import {
   formatSpeed,
   formatHeading,
 } from '../../utils/geo'
+import { formatAirportLocalTime } from '../../utils/timezone'
 
 interface FlightDetailDrawerProps {
   flight: Flight | null
@@ -164,7 +165,7 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
           </div>
         </div>
 
-        {/* TIME REMAINING UNTIL ARRIVAL (ETA) */}
+        {/* TIME REMAINING UNTIL ARRIVAL (ETA) OR DEPARTURE STATUS */}
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex items-center gap-3">
             <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
@@ -172,10 +173,12 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
             </div>
             <div>
               <p className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                Time Remaining
+                {flight.onGround ? 'Departure' : 'Time Remaining'}
               </p>
               <p className="text-sm font-bold text-white font-mono mt-0.5">
-                {formatDuration(flight.timeRemainingMinutes)}
+                {flight.onGround
+                  ? `Departs in ~${flight.speed > 5 ? 10 : 20}m`
+                  : formatDuration(flight.timeRemainingMinutes)}
               </p>
             </div>
           </div>
@@ -186,12 +189,18 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
             </div>
             <div>
               <p className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                Estimated Arrival
+                {flight.onGround
+                  ? 'Surface Status'
+                  : flight.destAirport?.iata
+                  ? `Est. Arrival (${flight.destAirport.iata} Local)`
+                  : 'Estimated Arrival'}
               </p>
               <p className="text-sm font-bold text-white font-mono mt-0.5">
-                {flight.estimatedArrivalTime
-                  ? flight.estimatedArrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : '--'}
+                {flight.onGround
+                  ? (flight.speed > 5 ? `Taxiing (${flight.speed} kts)` : 'Parked at Gate')
+                  : (flight.estimatedArrivalTime
+                      ? formatAirportLocalTime(flight.estimatedArrivalTime, flight.destAirport, true)
+                      : '--')}
               </p>
             </div>
           </div>

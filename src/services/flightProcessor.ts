@@ -163,7 +163,7 @@ export function buildFlightArcs(flights: Flight[], highlightedFlightId?: string)
   const arcs: FlightArc[] = []
 
   for (const flight of flights) {
-    if (flight.onGround) continue
+    if (flight.onGround && flight.id !== highlightedFlightId) continue
 
     const origin = flight.originAirport
     const dest = flight.destAirport

@@ -48,4 +48,11 @@ export const MOCK_FLIGHTS_FEED: Record<string, RawFr24Flight> = {
   // Cargo Flights
   'g501': ['g501', 37.1, -87.4, 210, 32000, 470, '7401', 'F-EST', 'MD11', 'N584FE', Date.now(), 'IND', 'MEM', 'FX1042', 0, 0, 'FDX1042', null, 'FDX'],
   'g502': ['g502', 38.5, -85.2, 195, 29000, 440, '7502', 'F-EST', 'B763', 'N324UP', Date.now(), 'PHL', 'SDF', '5X882', 0, 0, 'UPS882', null, 'UPS'],
+
+  // Ground / Taxiing Flights
+  'g601': ['g601', 40.641, -73.778, 130, 0, 14, '1200', 'F-EST', 'B739', 'N942DN', Date.now(), 'JFK', 'BOS', 'DL492', 1, 0, 'DAL492', null, 'DAL'],
+  'g602': ['g602', 33.943, -118.408, 250, 0, 18, '1200', 'F-EST', 'A321', 'N121AA', Date.now(), 'LAX', 'SFO', 'AA811', 1, 0, 'AAL811', null, 'AAL'],
+  'g603': ['g603', 41.978, -87.905, 90, 0, 12, '1200', 'F-EST', 'B772', 'N78001', Date.now(), 'ORD', 'DEN', 'UA315', 1, 0, 'UAL315', null, 'UAL'],
+  'g604': ['g604', 43.678, -79.625, 230, 0, 0, '1200', 'F-EST', 'B789', 'C-FGEI', Date.now(), 'YYZ', 'LHR', 'AC856', 1, 0, 'ACA856', null, 'ACA'],
 }
+

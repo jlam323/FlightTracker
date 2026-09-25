@@ -16,6 +16,7 @@ interface FilterBarProps {
   onFiltersChange: (filters: FlightFilters) => void
   flights: Flight[]
   pinnedIds?: string[]
+  isAirportViewOpen?: boolean
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -23,6 +24,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onFiltersChange,
   flights,
   pinnedIds = [],
+  isAirportViewOpen = false,
 }) => {
 
   const isFiltered =
@@ -92,34 +94,57 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         onFiltersChange={onFiltersChange}
         flights={flights}
         pinnedIds={pinnedIds}
+        disabled={isAirportViewOpen}
       />
 
 
       {/* Route: Origin Airport */}
-      <div className="relative flex items-center w-24">
-        <PlaneTakeoff className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+      <div
+        className="relative flex items-center w-24"
+        title={isAirportViewOpen ? 'Origin filter is disabled during airport view' : undefined}
+      >
+        <PlaneTakeoff
+          className={`absolute left-2.5 w-3.5 h-3.5 pointer-events-none transition-colors ${
+            isAirportViewOpen ? 'text-slate-600' : 'text-slate-400'
+          }`}
+        />
         <input
           type="text"
           maxLength={4}
+          disabled={isAirportViewOpen}
           value={filters.originAirport}
           onChange={e => onFiltersChange({ ...filters, originAirport: e.target.value.toUpperCase() })}
           placeholder="Origin"
-          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono"
+          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono disabled:opacity-40 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
         />
       </div>
 
-      <span className="text-slate-500 font-bold hidden sm:inline">→</span>
+      <span
+        className={`font-bold hidden sm:inline ${
+          isAirportViewOpen ? 'text-slate-700' : 'text-slate-500'
+        }`}
+      >
+        →
+      </span>
 
       {/* Route: Destination Airport */}
-      <div className="relative flex items-center w-24">
-        <PlaneLanding className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+      <div
+        className="relative flex items-center w-24"
+        title={isAirportViewOpen ? 'Destination filter is disabled during airport view' : undefined}
+      >
+        <PlaneLanding
+          className={`absolute left-2.5 w-3.5 h-3.5 pointer-events-none transition-colors ${
+            isAirportViewOpen ? 'text-slate-600' : 'text-slate-400'
+          }`}
+        />
         <input
           type="text"
           maxLength={4}
+          disabled={isAirportViewOpen}
           value={filters.destAirport}
           onChange={e => onFiltersChange({ ...filters, destAirport: e.target.value.toUpperCase() })}
           placeholder="Dest"
-          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono"
+          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono disabled:opacity-40 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
         />
       </div>
 

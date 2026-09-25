@@ -8,6 +8,7 @@ interface FlightStateFilterProps {
   onFiltersChange: (filters: FlightFilters) => void
   flights: Flight[]
   pinnedIds?: string[]
+  disabled?: boolean
 }
 
 export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
@@ -15,6 +16,7 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
   onFiltersChange,
   flights,
   pinnedIds = [],
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -29,7 +31,6 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
       high_cruise: 0,
       mid_altitude: 0,
       climb_approach: 0,
-      on_ground: 0,
       pinned: 0,
     }
 
@@ -121,23 +122,42 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
       {selectedStates.length === 0 ? (
         <button
           type="button"
-          onClick={() => setIsOpen(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium cursor-pointer ${
-            isOpen
-              ? 'bg-slate-800 border-slate-600 text-white shadow-lg'
-              : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-white hover:border-slate-600'
+          disabled={disabled}
+          onClick={() => !disabled && setIsOpen(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+            disabled
+              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              : isOpen
+              ? 'bg-slate-800 border-slate-600 text-white shadow-lg cursor-pointer'
+              : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-white hover:border-slate-600 cursor-pointer'
           }`}
-          title="Filter flights by altitude and flight state"
+          title={
+            disabled
+              ? 'Flight state filter is disabled during airport view'
+              : 'Filter flights by altitude and flight state'
+          }
         >
           <Gauge className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span>Flight State</span>
-          <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-3 h-3 text-slate-400 transition-transform ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
         </button>
       ) : singleConfig ? (
         <div
-          onClick={() => setIsOpen(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium cursor-pointer ${singleConfig.bgClass} ${singleConfig.borderClass} ${singleConfig.textClass}`}
-          title={`Filtered to ${singleConfig.label} (${singleConfig.sublabel})`}
+          onClick={() => !disabled && setIsOpen(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+            disabled
+              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              : `cursor-pointer ${singleConfig.bgClass} ${singleConfig.borderClass} ${singleConfig.textClass}`
+          }`}
+          title={
+            disabled
+              ? 'Flight state filter is disabled during airport view'
+              : `Filtered to ${singleConfig.label} (${singleConfig.sublabel})`
+          }
         >
           <span
             className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
@@ -147,21 +167,33 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
             }}
           />
           <span className="font-semibold text-white">{singleConfig.shortLabel}</span>
-          <span className="text-[10px] opacity-80 font-mono">({stateCounts[singleConfig.id]})</span>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
-            title="Clear flight state filter"
-          >
-            <X className="w-3 h-3" />
-          </button>
+          <span className="text-[10px] opacity-80 font-mono">
+            ({stateCounts[singleConfig.id]})
+          </span>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
+              title="Clear flight state filter"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </div>
       ) : (
         <div
-          onClick={() => setIsOpen(prev => !prev)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border bg-sky-500/15 border-sky-500/40 text-sky-200 transition-all text-xs font-medium cursor-pointer"
-          title={`${selectedStates.length} flight states active`}
+          onClick={() => !disabled && setIsOpen(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+            disabled
+              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              : 'cursor-pointer bg-sky-500/15 border-sky-500/40 text-sky-200'
+          }`}
+          title={
+            disabled
+              ? 'Flight state filter is disabled during airport view'
+              : `${selectedStates.length} flight states active`
+          }
         >
           <div className="flex items-center -space-x-1">
             {selectedConfigs.map(c => (
@@ -175,16 +207,22 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
               />
             ))}
           </div>
-          <span className="font-semibold text-white">{selectedStates.length} States</span>
-          <span className="text-[10px] opacity-80 font-mono">({totalSelectedCount})</span>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
-            title="Clear flight state filter"
-          >
-            <X className="w-3 h-3" />
-          </button>
+          <span className="font-semibold text-white">
+            {selectedStates.length} States
+          </span>
+          <span className="text-[10px] opacity-80 font-mono">
+            ({totalSelectedCount})
+          </span>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
+              title="Clear flight state filter"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </div>
       )}
 

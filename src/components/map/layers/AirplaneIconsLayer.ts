@@ -22,13 +22,23 @@ export function createAirplaneIconsLayer({
   onClickFlight,
   onHoverFlight,
 }: AirplaneIconsLayerProps): IconLayer<Flight> {
+  const visibleFlights = flights.filter(f => !f.onGround || f.id === selectedFlightId)
+
   return new IconLayer<Flight>({
     id: 'flights-aircraft-icons',
-    data: flights,
+    data: visibleFlights,
     iconAtlas: AIRPLANE_ICON_ATLAS,
     iconMapping: AIRPLANE_ICON_MAPPING,
     getIcon: () => 'airplane',
-    getPosition: d => [d.longitude, d.latitude, 0],
+    getPosition: d => {
+      if (d.onGround) {
+        const airport = d.originAirport || d.destAirport
+        if (airport) {
+          return [airport.longitude, airport.latitude, 0]
+        }
+      }
+      return [d.longitude, d.latitude, 0]
+    },
     getSize: d => {
       if (d.id === selectedFlightId) return 34
       if (d.id === hoveredFlightId) return 28
@@ -52,6 +62,7 @@ export function createAirplaneIconsLayer({
     onClick: onClickFlight,
     onHover: onHoverFlight,
     updateTriggers: {
+      getPosition: [selectedFlightId],
       getSize: [selectedFlightId, hoveredFlightId],
       getColor: [selectedFlightId, hoveredFlightId],
       getAngle: [bearing],

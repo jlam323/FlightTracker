@@ -22,6 +22,7 @@ export function createFlightLabelsLayer({
   onHoverFlight,
 }: FlightLabelsLayerProps): TextLayer<Flight> | null {
   const labelFlights = flights.filter(f => {
+    if (f.onGround && f.id !== selectedFlightId) return false
     if (shouldShowFlightLabels) return true
     if (f.id === selectedFlightId || f.id === hoveredFlightId || pinnedSet.has(f.id)) return true
     return false
@@ -32,7 +33,15 @@ export function createFlightLabelsLayer({
   return new TextLayer<Flight>({
     id: 'flights-labels',
     data: labelFlights,
-    getPosition: d => [d.longitude, d.latitude, 0],
+    getPosition: d => {
+      if (d.onGround) {
+        const airport = d.originAirport || d.destAirport
+        if (airport) {
+          return [airport.longitude, airport.latitude, 0]
+        }
+      }
+      return [d.longitude, d.latitude, 0]
+    },
     getText: d => d.flightNumber,
     getSize: 12,
     getColor: d => {
@@ -56,6 +65,7 @@ export function createFlightLabelsLayer({
     onHover: onHoverFlight,
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
+      getPosition: [selectedFlightId],
       getColor: [selectedFlightId, hoveredFlightId],
       getPixelOffset: [selectedFlightId, hoveredFlightId],
     },

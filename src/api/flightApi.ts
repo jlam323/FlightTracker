@@ -34,7 +34,7 @@ function getSimulatedMockFeed(): Record<string, RawFr24Flight> {
     const origin = getAirport(cloned[11])
     const dest = getAirport(cloned[12])
 
-    if (origin && dest) {
+    if (origin && dest && cloned[14] !== 1) {
       // Stagger initial progress and smoothly advance forward along the route arc
       const baseProgress = 0.12 + ((idx * 0.17) % 0.65)
       const currentProgress = ((baseProgress + mockSimulationOffset * 0.006) % 0.82) + 0.08
@@ -95,7 +95,7 @@ export async function fetchFlightFeed(
   // 1. Try Primary: Flightradar24 Feed
   try {
     const boundsParam = region === 'north_america' ? `bounds=${FR24_NA_BOUNDS}&` : ''
-    const url = `/api/fr24/zones/fcgi/feed.js?${boundsParam}faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=0&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0`
+    const url = `/api/fr24/zones/fcgi/feed.js?${boundsParam}faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0`
 
     const response = await fetch(url, {
       headers: {

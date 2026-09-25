@@ -2,12 +2,14 @@ import React, { useState, useMemo, useCallback } from 'react'
 import { Flight, FlightFilters, Airport } from './types/flight'
 import { useFlightFeed } from './hooks/useFlightFeed'
 import { usePinnedFlights } from './hooks/usePinnedFlights'
+import { useBookmarkedAirports } from './hooks/useBookmarkedAirports'
 import { filterFlights } from './services/filterService'
 import { Header } from './components/header/Header'
 import { FilterBar } from './components/header/FilterBar'
 import { FlightMap } from './components/map/FlightMap'
 import { FlightDetailDrawer } from './components/sidebar/FlightDetailDrawer'
 import { PinnedFlightsDrawer } from './components/sidebar/PinnedFlightsDrawer'
+import { AirportDetailDrawer } from './components/sidebar/AirportDetailDrawer'
 import { MapControls } from './components/map/MapControls'
 
 export const App: React.FC = () => {
@@ -20,7 +22,6 @@ export const App: React.FC = () => {
     destAirport: '',
   })
 
-
   // 2. Map Camera ViewState
   const [viewState, setViewState] = useState({
     longitude: -98.5,
@@ -32,6 +33,7 @@ export const App: React.FC = () => {
 
   // 3. UI Drawer & Selection States
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
+  const [selectedAirport, setSelectedAirport] = useState<Airport | null>(null)
   const [isPinnedDrawerOpen, setIsPinnedDrawerOpen] = useState(false)
   const [forceMockMode, setForceMockMode] = useState(false)
   const [showAirportCodes, setShowAirportCodes] = useState(true)
@@ -60,6 +62,9 @@ export const App: React.FC = () => {
   // 5. Pinned Flights Storage Hook
   const { pinnedIds, togglePin, isPinned } = usePinnedFlights()
 
+  // 5b. Bookmarked Airports Storage Hook (persisted in cookies)
+  const { bookmarkedAirports, isBookmarked, toggleBookmark } = useBookmarkedAirports()
+
   // 6. Filter active flights
   const filteredFlights = useMemo(() => {
     return filterFlights(flights, filters, pinnedIds)
@@ -70,15 +75,35 @@ export const App: React.FC = () => {
     return new Set(filteredFlights.map(f => f.id))
   }, [filteredFlights])
 
-  const filteredArcs = useMemo(() => {
-    return arcs.filter(a => activeFlightIdSet.has(a.flightId))
-  }, [arcs, activeFlightIdSet])
-
   // Find currently selected flight object
   const selectedFlight = useMemo(() => {
     if (!selectedFlightId) return null
     return flights.find(f => f.id === selectedFlightId) || null
   }, [flights, selectedFlightId])
+
+  const filteredArcs = useMemo(() => {
+    const baseArcs = arcs.filter(a => activeFlightIdSet.has(a.flightId))
+    if (selectedFlight && selectedFlight.onGround && selectedFlight.originAirport && selectedFlight.destAirport) {
+      const hasSelectedArc = baseArcs.some(a => a.flightId === selectedFlight.id)
+      if (!hasSelectedArc) {
+        baseArcs.push({
+          id: `arc-${selectedFlight.id}`,
+          flightId: selectedFlight.id,
+          flightNumber: selectedFlight.flightNumber,
+          source: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
+          target: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
+          originIata: selectedFlight.originAirport.iata,
+          destIata: selectedFlight.destAirport.iata,
+          flownSource: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
+          flownTarget: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
+          remSource: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
+          remTarget: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
+          isHighlighted: true,
+        })
+      }
+    }
+    return baseArcs
+  }, [arcs, activeFlightIdSet, selectedFlight])
 
   // Resolve pinned flights objects
   const pinnedFlights = useMemo(() => {
@@ -112,16 +137,54 @@ export const App: React.FC = () => {
 
   const handleSelectFlight = useCallback((flight: Flight) => {
     setSelectedFlightId(flight.id)
-    handleFlyTo(flight.latitude, flight.longitude, Math.max(viewState.zoom, 6))
+    setSelectedAirport(null) // Close airport drawer when flight is inspected
+    setFilters(prev => ({
+      ...prev,
+      airportCode: undefined,
+    }))
+    const airport = flight.originAirport || flight.destAirport
+    const lat = flight.onGround && airport ? airport.latitude : flight.latitude
+    const lon = flight.onGround && airport ? airport.longitude : flight.longitude
+    handleFlyTo(lat, lon, Math.max(viewState.zoom, 7))
   }, [handleFlyTo, viewState.zoom])
 
   const handleSelectAirport = useCallback((airport: Airport) => {
+    setSelectedAirport(airport)
+    setSelectedFlightId(null) // Close flight drawer when airport is clicked
     setFilters(prev => ({
       ...prev,
       airportCode: airport.iata,
+      originAirport: '',
+      destAirport: '',
+      flightStates: [],
     }))
-    handleFlyTo(airport.latitude, airport.longitude, 7.0)
+    handleFlyTo(airport.latitude, airport.longitude, 7.5)
   }, [handleFlyTo])
+
+  const handleToggleFilterHub = useCallback((airportCode: string) => {
+    setFilters(prev => ({
+      ...prev,
+      airportCode: prev.airportCode === airportCode ? undefined : airportCode,
+    }))
+  }, [])
+
+  const handleCloseAirportDrawer = useCallback(() => {
+    setSelectedAirport(null)
+    setFilters(prev => ({
+      ...prev,
+      airportCode: undefined,
+    }))
+  }, [])
+
+  const handleResetToAll = useCallback(() => {
+    setSelectedAirport(null)
+    setFilters(prev => ({
+      ...prev,
+      airportCode: undefined,
+    }))
+    handleFlyTo(39.8, -98.5, 3.8)
+  }, [handleFlyTo])
+
 
   const handleZoom = useCallback((delta: number) => {
 
@@ -157,6 +220,7 @@ export const App: React.FC = () => {
         onFiltersChange={setFilters}
         flights={flights}
         pinnedIds={pinnedIds}
+        isAirportViewOpen={Boolean(selectedAirport)}
       />
 
 
@@ -183,6 +247,10 @@ export const App: React.FC = () => {
         onFlyTo={handleFlyTo}
         showAirportCodes={showAirportCodes}
         onToggleAirportCodes={handleToggleAirportCodes}
+        bookmarkedAirports={bookmarkedAirports}
+        selectedAirportIata={selectedAirport?.iata}
+        onSelectAirport={handleSelectAirport}
+        onResetToAll={handleResetToAll}
       />
 
 
@@ -195,7 +263,22 @@ export const App: React.FC = () => {
         onFocusCamera={(lat, lon) => handleFlyTo(lat, lon, 7)}
       />
 
-      {/* 6. Pinned / Watched Flights Drawer */}
+      {/* 6. Airport Detail Inspector Drawer */}
+      <AirportDetailDrawer
+        airport={selectedAirport}
+        onClose={handleCloseAirportDrawer}
+        flights={flights}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onSelectFlight={handleSelectFlight}
+        onFocusCamera={(lat, lon) => handleFlyTo(lat, lon, 7.5)}
+        isFilteredByThisAirport={Boolean(selectedAirport && filters.airportCode === selectedAirport.iata)}
+        onToggleFilterHub={handleToggleFilterHub}
+        isBookmarked={selectedAirport ? isBookmarked(selectedAirport.iata) : false}
+        onToggleBookmark={toggleBookmark}
+      />
+
+      {/* 7. Pinned / Watched Flights Drawer */}
       <PinnedFlightsDrawer
         isOpen={isPinnedDrawerOpen}
         onClose={() => setIsPinnedDrawerOpen(false)}
@@ -203,6 +286,7 @@ export const App: React.FC = () => {
         onSelectFlight={handleSelectFlight}
         onUnpin={togglePin}
       />
+
     </div>
   )
 }

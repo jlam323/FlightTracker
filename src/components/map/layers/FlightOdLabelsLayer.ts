@@ -24,7 +24,7 @@ export function createFlightOdLabelsLayer({
   onHoverFlight,
 }: FlightOdLabelsLayerProps): TextLayer<Flight & { odText: string }> | null {
   const targetFlights = flights.filter(
-    f => f.id === hoveredFlightId || f.id === selectedFlightId
+    f => (f.id === hoveredFlightId || f.id === selectedFlightId) && (!f.onGround || f.id === selectedFlightId)
   )
   if (targetFlights.length === 0) return null
 
@@ -45,7 +45,15 @@ export function createFlightOdLabelsLayer({
   return new TextLayer<Flight & { odText: string }>({
     id: 'flights-od-labels',
     data,
-    getPosition: d => [d.longitude, d.latitude, 0],
+    getPosition: d => {
+      if (d.onGround) {
+        const airport = d.originAirport || d.destAirport
+        if (airport) {
+          return [airport.longitude, airport.latitude, 0]
+        }
+      }
+      return [d.longitude, d.latitude, 0]
+    },
     getText: d => d.odText,
     getSize: 12,
     getColor: PALETTE.TEXT_OD,
@@ -64,6 +72,7 @@ export function createFlightOdLabelsLayer({
     onHover: onHoverFlight,
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
+      getPosition: [selectedFlightId],
       getPixelOffset: [selectedFlightId, hoveredFlightId],
     },
   })

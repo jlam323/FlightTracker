@@ -39,15 +39,12 @@ export function filterFlights(
       }
     }
 
-    // 2. Hide on ground (unless on_ground is explicitly included in flightStates)
+    // 2. Hide on ground
     if (filters.hideOnGround && flight.onGround) {
-      const allowsGround = hasFlightStates && filters.flightStates!.includes('on_ground')
-      if (!allowsGround) {
-        return false
-      }
+      return false
     }
 
-    // 3. Flight State filter (High Cruise, Mid Altitude, Climb/Approach, On Ground, Pinned)
+    // 3. Flight State filter (High Cruise, Mid Altitude, Climb/Approach, Pinned)
     if (hasFlightStates && activeStateConfigs.length > 0) {
       const matchesAnyState = activeStateConfigs.some(config =>
         config.predicate(flight, pinnedIds)

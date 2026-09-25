@@ -71,6 +71,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
 
       let count = 0
       for (const f of flights) {
+        if (f.onGround && f.id !== selectedFlightId) continue
         const inLon =
           minLon <= maxLon
             ? f.longitude >= minLon && f.longitude <= maxLon
@@ -83,7 +84,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     } catch {
       return flights.length
     }
-  }, [flights, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
+  }, [flights, selectedFlightId, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
 
   // Dynamically scale max aircraft allowed for displaying flight IDs with zoom level
   const maxPlanesForLabels = useMemo(() => {

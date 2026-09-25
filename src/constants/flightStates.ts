@@ -52,18 +52,6 @@ export const FLIGHT_STATE_CONFIGS: FlightStateConfig[] = [
     predicate: f => !f.onGround && f.altitude <= 10000,
   },
   {
-    id: 'on_ground',
-    label: 'On Ground',
-    shortLabel: 'Ground',
-    sublabel: 'Taxi / Parked',
-    colorHex: '#94a3b8',
-    colorRgba: PALETTE.SLATE_GROUND,
-    bgClass: 'bg-slate-500/20',
-    borderClass: 'border-slate-500/50',
-    textClass: 'text-slate-300',
-    predicate: f => f.onGround,
-  },
-  {
     id: 'pinned',
     label: 'Pinned Flights',
     shortLabel: 'Pinned',
