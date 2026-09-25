@@ -24,9 +24,9 @@ export const MapControls: React.FC<MapControlsProps> = ({
   onResetToAll,
 }) => {
   return (
-    <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2">
+    <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-1.5">
       {/* Bookmarked Airport List (Includes 'All (NA)' at minimum) */}
-      <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-xl w-fit max-w-[calc(100vw-2rem)] sm:max-w-xl overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 bg-[#090a0f]/90 backdrop-blur-md p-1 rounded-md border border-white/[0.08] shadow-xl w-fit max-w-[calc(100vw-2rem)] sm:max-w-xl overflow-x-auto scrollbar-none">
         {/* Minimum Option: All (NA) */}
         <button
           onClick={() => {
@@ -36,10 +36,10 @@ export const MapControls: React.FC<MapControlsProps> = ({
               onFlyTo(39.8, -98.5, 3.8)
             }
           }}
-          className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`px-2 py-1 rounded-[4px] text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
             !selectedAirportIata
-              ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-sky-600/30 border-transparent hover:border-sky-500/40'
+              ? 'bg-neutral-800 text-white font-medium border-white/[0.12] shadow-xs'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60 border-transparent'
           }`}
           title="All (North America)"
         >
@@ -52,7 +52,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
 
           return (
             <React.Fragment key={airport.iata}>
-              <div className="h-3.5 w-px bg-slate-800 shrink-0" />
+              <div className="h-3.5 w-px bg-white/[0.08] shrink-0" />
               <button
                 onClick={() => {
                   if (onSelectAirport) {
@@ -61,10 +61,10 @@ export const MapControls: React.FC<MapControlsProps> = ({
                     onFlyTo(airport.latitude, airport.longitude, 7.5)
                   }
                 }}
-                className={`px-2 py-1 rounded-md text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
+                className={`px-2 py-1 rounded-[4px] text-[11px] font-mono transition-all border cursor-pointer whitespace-nowrap shrink-0 ${
                   isSelected
-                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-sky-600/30 border-transparent hover:border-sky-500/40'
+                    ? 'bg-neutral-800 text-white font-medium border-white/[0.12] shadow-xs'
+                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60 border-transparent'
                 }`}
                 title={`Fly to ${airport.name}`}
               >
@@ -76,37 +76,37 @@ export const MapControls: React.FC<MapControlsProps> = ({
       </div>
 
       {/* Camera & Overlay Controls */}
-      <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-xl w-fit">
+      <div className="flex items-center gap-0.5 bg-[#090a0f]/90 backdrop-blur-md p-1 rounded-md border border-white/[0.08] shadow-xl w-fit">
         <button
           onClick={() => onZoom(0.5)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+          className="p-1.5 rounded-[4px] text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all cursor-pointer"
           title="Zoom In"
         >
-          <ZoomIn className="w-4 h-4" />
+          <ZoomIn className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onZoom(-0.5)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+          className="p-1.5 rounded-[4px] text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all cursor-pointer"
           title="Zoom Out"
         >
-          <ZoomOut className="w-4 h-4" />
+          <ZoomOut className="w-3.5 h-3.5" />
         </button>
         {onToggleAirportCodes && (
           <div className="relative group flex items-center">
             <button
               onClick={onToggleAirportCodes}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`p-1.5 rounded-[4px] transition-all cursor-pointer border ${
                 showAirportCodes
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                  : 'text-neutral-400 hover:text-white hover:bg-neutral-800 border-transparent'
               }`}
               aria-label={showAirportCodes ? 'Hide Airport Codes (IATA)' : 'Show Airport Codes (IATA)'}
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-3.5 h-3.5" />
             </button>
             {/* Custom Tooltip */}
-            <div className="pointer-events-none absolute left-full ml-2.5 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-950/95 px-2.5 py-1 text-xs text-slate-200 border border-slate-800 shadow-2xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-150 z-30 flex items-center gap-1.5">
-              <span className="font-medium">
+            <div className="pointer-events-none absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#0c0d12]/95 px-2 py-1 text-[11px] text-neutral-200 border border-white/[0.08] shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-150 z-30 flex items-center gap-1.5 font-mono">
+              <span>
                 {showAirportCodes ? 'Hide Airport Codes' : 'Show Airport Codes'}
               </span>
             </div>

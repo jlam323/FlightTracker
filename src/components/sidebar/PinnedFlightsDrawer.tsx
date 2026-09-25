@@ -1,5 +1,4 @@
-import React from 'react'
-import { X, Bookmark, BookmarkCheck, Plane, ChevronRight, Trash2 } from 'lucide-react'
+import { X, Bookmark, BookmarkCheck, ChevronRight, Trash2 } from 'lucide-react'
 import { Flight } from '../../types/flight'
 import { formatDuration } from '../../utils/geo'
 
@@ -9,6 +8,7 @@ interface PinnedFlightsDrawerProps {
   pinnedFlights: Flight[]
   onSelectFlight: (flight: Flight) => void
   onUnpin: (flightId: string) => void
+  onClearAll?: () => void
   isPinnedOnly?: boolean
   onTogglePinnedOnly?: () => void
 }
@@ -19,39 +19,52 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
   pinnedFlights,
   onSelectFlight,
   onUnpin,
+  onClearAll,
   isPinnedOnly = false,
   onTogglePinnedOnly,
 }) => {
   if (!isOpen) return null
 
   return (
-    <aside className="absolute top-0 right-0 bottom-0 z-30 w-full sm:w-[380px] bg-slate-950/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl flex flex-col text-slate-100 overflow-y-auto animate-in slide-in-from-right duration-200">
+    <aside className="absolute top-0 right-0 bottom-0 z-30 w-full sm:w-[380px] bg-[#0c0d12]/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl flex flex-col text-neutral-100 overflow-y-auto animate-in slide-in-from-right duration-200">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-800/80 bg-slate-900/50">
+      <div className="flex items-center justify-between p-4 border-b border-white/[0.08] bg-neutral-900/60">
         <div className="flex items-center gap-2">
           <Bookmark className="w-4 h-4 text-amber-400" />
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          <h2 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">
             Watched Flights ({pinnedFlights.length})
           </h2>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {pinnedFlights.length > 0 && onClearAll && (
+            <button
+              onClick={onClearAll}
+              className="text-[11px] font-mono px-2 py-1 rounded-[4px] bg-neutral-900 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-300 border border-white/[0.08] hover:border-rose-500/30 transition-all cursor-pointer"
+              title="Unpin all watched flights"
+            >
+              Clear All
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-[5px] bg-neutral-900 hover:bg-neutral-800 border border-white/[0.08] text-neutral-400 hover:text-white transition-all cursor-pointer"
+            title="Close watched flights drawer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Quick Map Filter Toggle */}
       {pinnedFlights.length > 0 && onTogglePinnedOnly && (
-        <div className="px-4 py-2 bg-slate-900/40 border-b border-slate-800/80 flex items-center justify-between text-xs">
-          <span className="text-slate-400">Map Filter:</span>
+        <div className="px-4 py-2 bg-neutral-900/40 border-b border-white/[0.08] flex items-center justify-between text-xs">
+          <span className="text-neutral-400 font-mono text-[11px]">Map Filter:</span>
           <button
             onClick={onTogglePinnedOnly}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[5px] border text-xs font-medium transition-all cursor-pointer ${
               isPinnedOnly
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                : 'bg-neutral-900 hover:bg-neutral-800 border-white/[0.08] text-neutral-300 hover:text-white'
             }`}
           >
             {isPinnedOnly ? (
@@ -61,7 +74,7 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
               </>
             ) : (
               <>
-                <Bookmark className="w-3.5 h-3.5 text-slate-400" />
+                <Bookmark className="w-3.5 h-3.5 text-neutral-400" />
                 <span>Filter Map to Pinned</span>
               </>
             )}
@@ -70,12 +83,12 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
       )}
 
       {/* Flight List */}
-      <div className="p-3 space-y-2 flex-1 overflow-y-auto">
+      <div className="p-2.5 space-y-1.5 flex-1 overflow-y-auto">
         {pinnedFlights.length === 0 ? (
           <div className="text-center py-16 px-4">
-            <Bookmark className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-medium text-slate-400">No pinned flights yet</p>
-            <p className="text-xs text-slate-500 mt-1">
+            <Bookmark className="w-8 h-8 text-neutral-600 mx-auto mb-2 opacity-50" />
+            <p className="text-sm font-medium text-neutral-400">No pinned flights yet</p>
+            <p className="text-xs text-neutral-500 mt-1">
               Click any flight on the radar map and tap the bookmark icon to watch it here.
             </p>
           </div>
@@ -84,27 +97,36 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
             <div
               key={flight.id}
               onClick={() => onSelectFlight(flight)}
-              className="group bg-slate-900/80 hover:bg-slate-850 border border-slate-800/80 hover:border-sky-500/50 rounded-xl p-3 cursor-pointer transition-all flex items-center justify-between shadow-sm"
+              className="group bg-neutral-900/50 hover:bg-neutral-900 border border-white/[0.06] hover:border-white/[0.14] rounded-[5px] p-2.5 cursor-pointer transition-all flex items-center justify-between shadow-xs"
             >
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-sm text-sky-400">
+                  <span className="font-mono font-bold text-xs text-amber-400 tracking-tight">
                     {flight.flightNumber}
                   </span>
-                  <span className="text-[10px] text-slate-400 truncate">
+                  <span className="text-[10px] text-neutral-400 truncate">
                     {flight.airlineName || flight.callsign}
                   </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs font-mono text-slate-300 mt-1">
-                  <span>{flight.originIata || '---'}</span>
-                  <Plane className="w-3 h-3 text-slate-500 rotate-90" />
-                  <span>{flight.destIata || '---'}</span>
-                  {flight.timeRemainingMinutes && (
-                    <span className="text-emerald-400 text-[11px] ml-auto font-sans font-medium">
-                      {formatDuration(flight.timeRemainingMinutes)} left
+                  {flight.lastKnown && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-neutral-800 text-amber-400/90 border border-amber-500/20 shrink-0">
+                      Last Known
                     </span>
                   )}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-mono tabular-nums text-neutral-300 mt-1">
+                  <span className="font-bold text-sky-300">{flight.originIata || '---'}</span>
+                  <span className="text-neutral-600 font-bold">→</span>
+                  <span className="font-bold text-emerald-300">{flight.destIata || '---'}</span>
+                  {flight.lastKnown ? (
+                    <span className="text-neutral-500 text-[10px] ml-auto font-mono">
+                      Offline / Out of range
+                    </span>
+                  ) : flight.timeRemainingMinutes ? (
+                    <span className="text-neutral-400 text-[10px] ml-auto font-mono tabular-nums">
+                      {formatDuration(flight.timeRemainingMinutes)} left
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -114,12 +136,12 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
                     e.stopPropagation()
                     onUnpin(flight.id)
                   }}
-                  className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors"
+                  className="p-1 rounded-[4px] hover:bg-rose-500/20 text-neutral-500 hover:text-rose-400 transition-colors cursor-pointer"
                   title="Remove from watched"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-sky-400 transition-colors" />
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-600 group-hover:text-sky-400 transition-colors" />
               </div>
             </div>
           ))

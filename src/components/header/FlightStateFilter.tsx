@@ -124,12 +124,12 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
           type="button"
           disabled={disabled}
           onClick={() => !disabled && setIsOpen(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[5px] border transition-all text-xs font-medium ${
             disabled
-              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              ? 'opacity-30 cursor-not-allowed bg-neutral-900 border-white/[0.04] text-neutral-500'
               : isOpen
-              ? 'bg-slate-800 border-slate-600 text-white shadow-lg cursor-pointer'
-              : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-white hover:border-slate-600 cursor-pointer'
+              ? 'bg-neutral-800 border-white/[0.15] text-white shadow-xs cursor-pointer'
+              : 'bg-neutral-900/90 border-white/[0.08] text-neutral-300 hover:text-white hover:bg-neutral-800 cursor-pointer'
           }`}
           title={
             disabled
@@ -137,10 +137,10 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
               : 'Filter flights by altitude and flight state'
           }
         >
-          <Gauge className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <Gauge className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
           <span>Flight State</span>
           <ChevronDown
-            className={`w-3 h-3 text-slate-400 transition-transform ${
+            className={`w-3 h-3 text-neutral-400 transition-transform ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -148,9 +148,9 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
       ) : singleConfig ? (
         <div
           onClick={() => !disabled && setIsOpen(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-[5px] border transition-all text-xs font-medium ${
             disabled
-              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              ? 'opacity-30 cursor-not-allowed bg-neutral-900 border-white/[0.04] text-neutral-500'
               : `cursor-pointer ${singleConfig.bgClass} ${singleConfig.borderClass} ${singleConfig.textClass}`
           }`}
           title={
@@ -160,21 +160,21 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
           }
         >
           <span
-            className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+            className="w-2 h-2 rounded-full shrink-0"
             style={{
               backgroundColor: singleConfig.colorHex,
-              boxShadow: `0 0 8px ${singleConfig.colorHex}aa`,
+              boxShadow: `0 0 6px ${singleConfig.colorHex}88`,
             }}
           />
           <span className="font-semibold text-white">{singleConfig.shortLabel}</span>
-          <span className="text-[10px] opacity-80 font-mono">
+          <span className="text-[10px] opacity-80 font-mono tabular-nums">
             ({stateCounts[singleConfig.id]})
           </span>
           {!disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
+              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors cursor-pointer"
               title="Clear flight state filter"
             >
               <X className="w-3 h-3" />
@@ -184,9 +184,9 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
       ) : (
         <div
           onClick={() => !disabled && setIsOpen(prev => !prev)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-[5px] border transition-all text-xs font-medium ${
             disabled
-              ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800 text-slate-500'
+              ? 'opacity-30 cursor-not-allowed bg-neutral-900 border-white/[0.04] text-neutral-500'
               : 'cursor-pointer bg-sky-500/15 border-sky-500/40 text-sky-200'
           }`}
           title={
@@ -199,10 +199,10 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
             {selectedConfigs.map(c => (
               <span
                 key={c.id}
-                className="w-2.5 h-2.5 rounded-full border border-slate-900"
+                className="w-2 h-2 rounded-full border border-neutral-950"
                 style={{
                   backgroundColor: c.colorHex,
-                  boxShadow: `0 0 6px ${c.colorHex}88`,
+                  boxShadow: `0 0 4px ${c.colorHex}66`,
                 }}
               />
             ))}
@@ -210,14 +210,14 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
           <span className="font-semibold text-white">
             {selectedStates.length} States
           </span>
-          <span className="text-[10px] opacity-80 font-mono">
+          <span className="text-[10px] opacity-80 font-mono tabular-nums">
             ({totalSelectedCount})
           </span>
           {!disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors"
+              className="ml-0.5 p-0.5 rounded hover:bg-white/15 text-white/70 hover:text-white transition-colors cursor-pointer"
               title="Clear flight state filter"
             >
               <X className="w-3 h-3" />
@@ -228,10 +228,10 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
 
       {/* Floating Dropdown Popover */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1.5 w-64 bg-slate-950/95 backdrop-blur-xl border border-slate-800 rounded-xl shadow-2xl z-30 p-2 text-xs flex flex-col gap-1 select-none animate-in fade-in zoom-in-95">
+        <div className="absolute top-full left-0 mt-1.5 w-64 bg-[#0c0d12]/95 backdrop-blur-xl border border-white/[0.1] rounded-lg shadow-2xl z-30 p-2 text-xs flex flex-col gap-1 select-none animate-in fade-in zoom-in-95">
           {/* Header */}
-          <div className="flex items-center justify-between px-2 py-1 border-b border-slate-800/80 pb-1.5">
-            <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
+          <div className="flex items-center justify-between px-2 py-1 border-b border-white/[0.08] pb-1.5">
+            <span className="text-[10px] font-semibold text-neutral-400 tracking-wider uppercase">
               Filter by Flight State
             </span>
             {selectedStates.length > 0 && (
@@ -255,42 +255,42 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
                 <div
                   key={config.id}
                   onClick={() => handleToggleState(config.id)}
-                  className={`group flex items-center justify-between px-2 py-1.5 rounded-lg cursor-pointer transition-all ${
+                  className={`group flex items-center justify-between px-2 py-1.5 rounded-[5px] cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-slate-900/90 border border-slate-700/80 shadow-sm'
-                      : 'hover:bg-slate-900/60 border border-transparent'
+                      ? 'bg-neutral-900 border border-white/[0.1] shadow-xs'
+                      : 'hover:bg-neutral-900/60 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {/* Checkbox */}
                     <div
-                      className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-all shrink-0 ${
+                      className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center border transition-all shrink-0 ${
                         isSelected
-                          ? 'border-transparent text-slate-950'
-                          : 'border-slate-700 group-hover:border-slate-500'
+                          ? 'border-transparent text-neutral-950'
+                          : 'border-neutral-700 group-hover:border-neutral-500'
                       }`}
                       style={{
                         backgroundColor: isSelected ? config.colorHex : 'transparent',
                       }}
                     >
-                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3] text-slate-950" />}
+                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3] text-neutral-950" />}
                     </div>
 
                     {/* Color Dot with glow */}
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                      className="w-2 h-2 rounded-full shrink-0"
                       style={{
                         backgroundColor: config.colorHex,
-                        boxShadow: `0 0 8px ${config.colorHex}aa`,
+                        boxShadow: `0 0 6px ${config.colorHex}88`,
                       }}
                     />
 
                     {/* Label & Sublabel */}
                     <div className="flex flex-col min-w-0">
-                      <span className={`font-semibold text-xs leading-tight ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                      <span className={`font-semibold text-xs leading-tight ${isSelected ? 'text-white' : 'text-neutral-200'}`}>
                         {config.label}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono leading-tight">
+                      <span className="text-[10px] text-neutral-400 font-mono leading-tight">
                         {config.sublabel}
                       </span>
                     </div>
@@ -301,12 +301,12 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
                     <button
                       type="button"
                       onClick={e => handleSelectOnly(e, config.id)}
-                      className="opacity-0 group-hover:opacity-100 text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded bg-slate-800/80 hover:bg-slate-700 transition-all font-medium"
+                      className="opacity-0 group-hover:opacity-100 text-[10px] text-neutral-400 hover:text-white px-1.5 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 transition-all font-medium cursor-pointer"
                       title={`Show only ${config.label}`}
                     >
                       Only
                     </button>
-                    <span className="text-[11px] font-mono text-slate-400 bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-800/80">
+                    <span className="text-[11px] font-mono tabular-nums text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-white/[0.06]">
                       {count}
                     </span>
                   </div>
@@ -316,7 +316,7 @@ export const FlightStateFilter: React.FC<FlightStateFilterProps> = ({
           </div>
 
           {/* Footer Note */}
-          <div className="px-2 pt-1.5 mt-0.5 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
+          <div className="px-2 pt-1.5 mt-0.5 border-t border-white/[0.08] text-[10px] text-neutral-500 flex items-center justify-between">
             <span>Colors match aircraft on radar</span>
             <span>{flights.length} total</span>
           </div>

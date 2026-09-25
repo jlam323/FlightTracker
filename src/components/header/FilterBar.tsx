@@ -54,21 +54,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
 
   return (
-    <div className="absolute top-14 left-4 z-20 flex flex-wrap items-center gap-2 bg-slate-950/85 backdrop-blur-md p-2 rounded-xl border border-slate-800/80 shadow-2xl text-xs max-w-[calc(100vw-2rem)]">
+    <div className="absolute top-13 left-4 z-20 flex flex-wrap items-center gap-1.5 bg-[#090a0f]/90 backdrop-blur-md p-1.5 rounded-lg border border-white/[0.08] shadow-xl text-xs max-w-[calc(100vw-2rem)]">
       {/* Search Input: Flight ID / Callsign */}
-      <div className="relative flex items-center min-w-[160px] sm:min-w-[190px]">
-        <Search className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+      <div className="relative flex items-center min-w-[155px] sm:min-w-[180px]">
+        <Search className="absolute left-2.5 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
         <input
           type="text"
           value={filters.searchQuery}
           onChange={e => onFiltersChange({ ...filters, searchQuery: e.target.value })}
           placeholder="Flight ID (e.g. DL1234)"
-          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-7 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all font-mono"
+          className="w-full bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-7 pr-6 py-1.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 transition-all font-mono tracking-tight text-xs"
         />
         {filters.searchQuery && (
           <button
             onClick={() => onFiltersChange({ ...filters, searchQuery: '' })}
-            className="absolute right-2 text-slate-400 hover:text-slate-200"
+            className="absolute right-2 text-neutral-400 hover:text-neutral-200 cursor-pointer"
           >
             <X className="w-3 h-3" />
           </button>
@@ -77,11 +77,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Airline Dropdown */}
       <div className="relative flex items-center">
-        <Building2 className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+        <Building2 className="absolute left-2.5 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
         <select
           value={filters.airlineIcao}
           onChange={e => onFiltersChange({ ...filters, airlineIcao: e.target.value })}
-          className="bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-6 py-1.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all appearance-none cursor-pointer"
+          className="bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-7 pr-6 py-1.5 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 transition-all appearance-none cursor-pointer text-xs"
         >
           <option value="">All Airlines</option>
           {Object.values(AIRLINES).map(a => (
@@ -105,10 +105,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <button
         type="button"
         onClick={() => onFiltersChange({ ...filters, pinnedOnly: !filters.pinnedOnly })}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium cursor-pointer ${
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[5px] border transition-all text-xs font-medium cursor-pointer ${
           filters.pinnedOnly
-            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
-            : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-white hover:border-slate-600'
+            ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+            : 'bg-neutral-900/90 border-white/[0.08] text-neutral-300 hover:text-white hover:bg-neutral-800'
         }`}
         title={filters.pinnedOnly ? 'Show all flights' : 'Filter by pinned flights only'}
         aria-pressed={Boolean(filters.pinnedOnly)}
@@ -116,15 +116,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {filters.pinnedOnly ? (
           <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
         ) : (
-          <Bookmark className="w-3.5 h-3.5 text-slate-400" />
+          <Bookmark className="w-3.5 h-3.5 text-neutral-400" />
         )}
         <span>Pinned Only</span>
         {pinnedIds.length > 0 && (
           <span
-            className={`text-[10px] font-mono px-1.5 py-0.5 rounded leading-none ${
+            className={`text-[10px] font-mono px-1 py-0.2 rounded leading-none tabular-nums ${
               filters.pinnedOnly
                 ? 'bg-amber-400/20 text-amber-200'
-                : 'bg-slate-800 text-slate-400'
+                : 'bg-neutral-800 text-neutral-400'
             }`}
           >
             {pinnedIds.length}
@@ -132,15 +132,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         )}
       </button>
 
-
       {/* Route: Origin Airport */}
       <div
-        className="relative flex items-center w-24"
+        className="relative flex items-center w-22"
         title={isAirportViewOpen ? 'Origin filter is disabled during airport view' : undefined}
       >
         <PlaneTakeoff
-          className={`absolute left-2.5 w-3.5 h-3.5 pointer-events-none transition-colors ${
-            isAirportViewOpen ? 'text-slate-600' : 'text-slate-400'
+          className={`absolute left-2 w-3.5 h-3.5 pointer-events-none transition-colors ${
+            isAirportViewOpen ? 'text-neutral-600' : 'text-neutral-400'
           }`}
         />
         <input
@@ -150,13 +149,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           value={filters.originAirport}
           onChange={e => onFiltersChange({ ...filters, originAirport: e.target.value.toUpperCase() })}
           placeholder="Origin"
-          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono disabled:opacity-40 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
+          className="w-full bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-6.5 pr-2 py-1.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 uppercase font-mono text-xs tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
         />
       </div>
 
       <span
-        className={`font-bold hidden sm:inline ${
-          isAirportViewOpen ? 'text-slate-700' : 'text-slate-500'
+        className={`font-mono text-xs ${
+          isAirportViewOpen ? 'text-neutral-700' : 'text-neutral-500'
         }`}
       >
         →
@@ -164,12 +163,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Route: Destination Airport */}
       <div
-        className="relative flex items-center w-24"
+        className="relative flex items-center w-22"
         title={isAirportViewOpen ? 'Destination filter is disabled during airport view' : undefined}
       >
         <PlaneLanding
-          className={`absolute left-2.5 w-3.5 h-3.5 pointer-events-none transition-colors ${
-            isAirportViewOpen ? 'text-slate-600' : 'text-slate-400'
+          className={`absolute left-2 w-3.5 h-3.5 pointer-events-none transition-colors ${
+            isAirportViewOpen ? 'text-neutral-600' : 'text-neutral-400'
           }`}
         />
         <input
@@ -179,18 +178,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           value={filters.destAirport}
           onChange={e => onFiltersChange({ ...filters, destAirport: e.target.value.toUpperCase() })}
           placeholder="Dest"
-          className="w-full bg-slate-900 border border-slate-700/80 focus:border-sky-500 rounded-lg pl-8 pr-2 py-1.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 uppercase font-mono disabled:opacity-40 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
+          className="w-full bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-6.5 pr-2 py-1.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 uppercase font-mono text-xs tracking-wider disabled:opacity-30 disabled:cursor-not-allowed"
         />
       </div>
 
       {/* Active Airport Hub Filter Badge */}
       {filters.airportCode && (
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-200 font-mono text-xs">
-          <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-[5px] bg-sky-500/15 border border-sky-500/40 text-sky-200 font-mono text-xs">
+          <MapPin className="w-3 h-3 text-sky-400 shrink-0" />
           <span>Hub: <strong className="text-white">{filters.airportCode}</strong></span>
           <button
             onClick={() => onFiltersChange({ ...filters, airportCode: undefined })}
-            className="text-sky-300 hover:text-white ml-0.5 p-0.5 rounded hover:bg-sky-500/30 transition-colors"
+            className="text-sky-300 hover:text-white ml-0.5 p-0.5 rounded hover:bg-sky-500/30 transition-colors cursor-pointer"
             title={`Clear ${filters.airportCode} hub filter`}
           >
             <X className="w-3 h-3" />
@@ -198,13 +197,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
       )}
 
-
-
       {/* Clear All button */}
       {isFiltered && (
         <button
           onClick={handleClearAll}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 text-xs transition-all cursor-pointer font-medium ml-0.5"
+          className="flex items-center gap-1 px-2 py-1.5 rounded-[5px] bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 text-xs transition-all cursor-pointer font-medium ml-0.5"
           title="Clear all active filters"
         >
           <X className="w-3.5 h-3.5" />

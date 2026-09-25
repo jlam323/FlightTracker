@@ -67,7 +67,7 @@ export function createAirplaneIconsLayer({
     getAngle: d => (360 - d.heading + bearing) % 360,
     getColor: d => {
       if (d.id === selectedFlightId || d.id === hoveredFlightId) return PALETTE.YELLOW
-      if (pinnedSet.has(d.id)) return PALETTE.AMBER
+      if (pinnedSet.has(d.id)) return d.lastKnown ? [245, 158, 11, 200] : PALETTE.AMBER
       if (d.onGround) return PALETTE.SLATE_GROUND
       if (d.altitude > 30000) return PALETTE.CYAN
       if (d.altitude > 10000) return PALETTE.INDIGO

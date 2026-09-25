@@ -47,6 +47,10 @@ export interface Flight {
 
   // Data feed source
   source?: FlightSource
+
+  // Live vs Last-Known status
+  isLive?: boolean
+  lastKnown?: boolean
 }
 
 export interface FlightArc {

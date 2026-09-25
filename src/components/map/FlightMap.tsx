@@ -5,6 +5,7 @@ import Map from 'react-map-gl/maplibre'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Flight, FlightArc, Airport } from '../../types/flight'
+import { ALL_AIRPORTS } from '../../data/airports'
 import { CARTO_DARK_RASTER_STYLE, CARTO_API_KEY } from './mapConstants'
 import {
   createRouteArcsLayer,
@@ -30,6 +31,8 @@ interface FlightMapProps {
     zoom: number
     pitch: number
     bearing: number
+    minZoom?: number
+    maxZoom?: number
   }
   onViewStateChange: (viewState: any) => void
   showAirportCodes?: boolean
@@ -140,6 +143,47 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
   }, [flights, selectedFlightId, pinnedFlightIds, pinnedSet])
 
+  // Extend flights and airports so transpacific flights render continuously
+  // across the antimeridian without abrupt vanishing
+  const renderedFlights = useMemo(() => {
+    const list: Flight[] = []
+    for (const f of sortedFlights) {
+      list.push(f)
+      if (f.longitude > 90) {
+        list.push({ ...f, longitude: f.longitude - 360 })
+      } else if (f.longitude < -90) {
+        list.push({ ...f, longitude: f.longitude + 360 })
+      }
+    }
+    return list
+  }, [sortedFlights])
+
+  const renderedAllFlights = useMemo(() => {
+    const list: Flight[] = []
+    for (const f of flights) {
+      list.push(f)
+      if (f.longitude > 90) {
+        list.push({ ...f, longitude: f.longitude - 360 })
+      } else if (f.longitude < -90) {
+        list.push({ ...f, longitude: f.longitude + 360 })
+      }
+    }
+    return list
+  }, [flights])
+
+  const renderedAirports = useMemo(() => {
+    const list: Airport[] = []
+    for (const a of ALL_AIRPORTS) {
+      list.push(a)
+      if (a.longitude > 90) {
+        list.push({ ...a, longitude: a.longitude - 360 })
+      } else if (a.longitude < -90) {
+        list.push({ ...a, longitude: a.longitude + 360 })
+      }
+    }
+    return list
+  }, [])
+
   // Shared interaction handlers
   const handleFlightClick = useCallback(
     (info: { object?: unknown }) => {
@@ -171,12 +215,13 @@ export const FlightMap: React.FC<FlightMapProps> = ({
 
   // Stack all map layers
   const layers = useMemo(() => {
-    const arcLayer = createRouteArcsLayer({
+    const arcLayers = createRouteArcsLayer({
       arcs: sortedArcs,
       selectedFlightId,
     })
 
     const airportDotsLayer = createAirportDotsLayer({
+      airports: renderedAirports,
       selectedAirportCode,
       selectedAirportIatas,
       hoveredAirportIata,
@@ -186,6 +231,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     const airportLabelsLayer = createAirportLabelsLayer({
+      airports: renderedAirports,
       showAirportCodes,
       zoom: viewState.zoom,
       selectedAirportCode,
@@ -197,13 +243,13 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     const highlightRingLayer = createHighlightRingsLayer({
-      flights,
+      flights: renderedAllFlights,
       selectedFlightId,
       pinnedSet,
     })
 
     const airplaneIconLayer = createAirplaneIconsLayer({
-      flights: sortedFlights,
+      flights: renderedFlights,
       selectedFlightId,
       hoveredFlightId,
       pinnedSet,
@@ -214,7 +260,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     const textLayer = createFlightLabelsLayer({
-      flights: sortedFlights,
+      flights: renderedFlights,
       shouldShowFlightLabels,
       selectedFlightId,
       hoveredFlightId,
@@ -225,7 +271,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     const flightOdLayer = createFlightOdLabelsLayer({
-      flights: sortedFlights,
+      flights: renderedFlights,
       selectedFlightId,
       hoveredFlightId,
       onClickFlight: handleFlightClick,
@@ -233,7 +279,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     return [
-      arcLayer,
+      ...arcLayers,
       airportDotsLayer,
       ...(airportLabelsLayer ? [airportLabelsLayer] : []),
       ...(highlightRingLayer ? [highlightRingLayer] : []),
@@ -244,6 +290,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
   }, [
     sortedArcs,
     selectedFlightId,
+    renderedAirports,
     selectedAirportCode,
     selectedAirportIatas,
     hoveredAirportIata,
@@ -251,9 +298,9 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     showAirportCodes,
     viewState.zoom,
     viewState.bearing,
-    flights,
+    renderedAllFlights,
     pinnedSet,
-    sortedFlights,
+    renderedFlights,
     hoveredFlightId,
     shouldShowFlightLabels,
     searchQuery,
@@ -329,9 +376,12 @@ export const FlightMap: React.FC<FlightMapProps> = ({
           transformRequest={transformRequest}
           attributionControl={false}
           maxPitch={0}
+          minZoom={1.5}
+          maxZoom={12}
         />
       </DeckGL>
     </div>
   )
 }
 export default FlightMap
+

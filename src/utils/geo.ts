@@ -183,3 +183,61 @@ export function calculateBearing(
   const theta = Math.atan2(y, x)
   return Math.round((toDegrees(theta) + 360) % 360)
 }
+
+/**
+ * Generates an array of [lon, lat] coordinates along the Great Circle path between two points,
+ * with continuous longitude unwrapping (so routes crossing the 180° antimeridian do not jump
+ * by 360°).
+ */
+export function generateGreatCircleRoutePoints(
+  lon1: number,
+  lat1: number,
+  lon2: number,
+  lat2: number,
+  numPoints = 25
+): [number, number][] {
+  const p1 = [
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lon1)),
+    Math.cos(toRadians(lat1)) * Math.sin(toRadians(lon1)),
+    Math.sin(toRadians(lat1)),
+  ]
+  const p2 = [
+    Math.cos(toRadians(lat2)) * Math.cos(toRadians(lon2)),
+    Math.cos(toRadians(lat2)) * Math.sin(toRadians(lon2)),
+    Math.sin(toRadians(lat2)),
+  ]
+  const dot = Math.min(1, Math.max(-1, p1[0] * p2[0] + p1[1] * p2[1] + p1[2] * p2[2]))
+  const delta = Math.acos(dot)
+  const sinDelta = Math.sin(delta)
+
+  const pts: [number, number][] = []
+  let prevLon = lon1
+
+  for (let i = 0; i <= numPoints; i++) {
+    const f = i / numPoints
+    let x: number, y: number, z: number
+    if (sinDelta < 1e-6) {
+      x = p1[0]
+      y = p1[1]
+      z = p1[2]
+    } else {
+      const A = Math.sin((1 - f) * delta) / sinDelta
+      const B = Math.sin(f * delta) / sinDelta
+      x = A * p1[0] + B * p2[0]
+      y = A * p1[1] + B * p2[1]
+      z = A * p1[2] + B * p2[2]
+    }
+    const lat = toDegrees(Math.atan2(z, Math.sqrt(x * x + y * y)))
+    let lon = toDegrees(Math.atan2(y, x))
+
+    // Unwrap longitude to be continuous with prevLon
+    while (lon - prevLon > 180) lon -= 360
+    while (lon - prevLon < -180) lon += 360
+    prevLon = lon
+
+    pts.push([Number(lon.toFixed(4)), Number(lat.toFixed(4))])
+  }
+
+  return pts
+}
+

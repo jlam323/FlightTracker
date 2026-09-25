@@ -30,6 +30,8 @@ export const App: React.FC = () => {
     zoom: 4.2,
     pitch: 0,
     bearing: 0,
+    minZoom: 1.5,
+    maxZoom: 12,
   })
 
   // 3. UI Drawer & Selection States
@@ -60,36 +62,59 @@ export const App: React.FC = () => {
     pollIntervalMs: 60000,
   })
 
-  // 5. Pinned Flights Storage Hook
-  const { pinnedIds, togglePin, isPinned } = usePinnedFlights()
+  // 5. Pinned Flights Storage Hook (tracks live and offline/last-known flights)
+  const {
+    pinnedIds,
+    pinnedFlights,
+    togglePin,
+    unpinFlight,
+    clearAllPinned,
+    isPinned,
+  } = usePinnedFlights(flights)
 
   // 5b. Bookmarked Airports Storage Hook (persisted in cookies)
   const { bookmarkedAirports, isBookmarked, toggleBookmark } = useBookmarkedAirports()
 
-  // 6. Filter active flights
+  // Combine live flights with last-known pinned flights that aren't in the live feed
+  const allFlights = useMemo(() => {
+    const liveIds = new Set(flights.map(f => f.id))
+    const offlinePinned = pinnedFlights.filter(
+      f => !liveIds.has(f.id) && (f.latitude !== 0 || f.longitude !== 0)
+    )
+    if (offlinePinned.length === 0) return flights
+    return [...flights, ...offlinePinned]
+  }, [flights, pinnedFlights])
+
+  // 6. Filter active flights (including live and cached last-known pinned flights)
   const filteredFlights = useMemo(() => {
-    return filterFlights(flights, filters, pinnedIds)
-  }, [flights, filters, pinnedIds])
+    return filterFlights(allFlights, filters, pinnedIds)
+  }, [allFlights, filters, pinnedIds])
 
   // Filter arcs to match filtered flights
   const activeFlightIdSet = useMemo(() => {
     return new Set(filteredFlights.map(f => f.id))
   }, [filteredFlights])
 
-  // Find currently selected flight object
+  // Find currently selected flight object (checks live feed first, then pinned/last-known)
   const selectedFlight = useMemo(() => {
     if (!selectedFlightId) return null
-    return flights.find(f => f.id === selectedFlightId) || null
-  }, [flights, selectedFlightId])
+    return (
+      flights.find(f => f.id === selectedFlightId) ||
+      pinnedFlights.find(f => f.id === selectedFlightId) ||
+      null
+    )
+  }, [flights, pinnedFlights, selectedFlightId])
 
   const filteredArcs = useMemo(() => {
     const baseArcs = arcs.filter(a => activeFlightIdSet.has(a.flightId))
     const hasSearchQuery = Boolean(filters.searchQuery?.trim())
 
     for (const flight of filteredFlights) {
-      if (flight.onGround && flight.originAirport && flight.destAirport) {
+      if (flight.originAirport && flight.destAirport) {
         const isSelected = flight.id === selectedFlightId
-        if (isSelected || hasSearchQuery) {
+        const isGroundWithSearch = flight.onGround && (isSelected || hasSearchQuery)
+        const isOfflinePinned = Boolean(flight.lastKnown && (isSelected || filters.pinnedOnly || hasSearchQuery))
+        if (isGroundWithSearch || isOfflinePinned) {
           const hasArc = baseArcs.some(a => a.flightId === flight.id)
           if (!hasArc) {
             baseArcs.push({
@@ -111,13 +136,7 @@ export const App: React.FC = () => {
       }
     }
     return baseArcs
-  }, [arcs, activeFlightIdSet, filteredFlights, filters.searchQuery, selectedFlightId])
-
-  // Resolve pinned flights objects
-  const pinnedFlights = useMemo(() => {
-    const idSet = new Set(pinnedIds)
-    return flights.filter(f => idSet.has(f.id))
-  }, [flights, pinnedIds])
+  }, [arcs, activeFlightIdSet, filteredFlights, filters.searchQuery, filters.pinnedOnly, selectedFlightId])
 
   // Check if search or route filters are actively filtering flights
   const hasActiveFilter = useMemo(() => {
@@ -195,11 +214,19 @@ export const App: React.FC = () => {
   }, [handleFlyTo])
 
 
-  const handleZoom = useCallback((delta: number) => {
-
+  const handleViewStateChange = useCallback((nextViewState: any) => {
     setViewState(prev => ({
       ...prev,
-      zoom: Math.min(12, Math.max(2, prev.zoom + delta)),
+      ...nextViewState,
+      zoom: Math.min(12, Math.max(1.5, nextViewState.zoom)),
+      pitch: 0,
+    }))
+  }, [])
+
+  const handleZoom = useCallback((delta: number) => {
+    setViewState(prev => ({
+      ...prev,
+      zoom: Math.min(12, Math.max(1.5, prev.zoom + delta)),
     }))
   }, [])
 
@@ -245,7 +272,7 @@ export const App: React.FC = () => {
         onSelectFlight={handleSelectFlight}
         onSelectAirport={handleSelectAirport}
         viewState={viewState}
-        onViewStateChange={setViewState}
+        onViewStateChange={handleViewStateChange}
         showAirportCodes={showAirportCodes}
         hasActiveFilter={hasActiveFilter}
         searchQuery={filters.searchQuery}
@@ -269,7 +296,7 @@ export const App: React.FC = () => {
         flight={selectedFlight}
         onClose={() => setSelectedFlightId(null)}
         isPinned={selectedFlight ? isPinned(selectedFlight.id) : false}
-        onTogglePin={togglePin}
+        onTogglePin={(id, f) => togglePin(id, f || selectedFlight || undefined)}
         onFocusCamera={(lat, lon) => handleFlyTo(lat, lon, 7)}
       />
 
@@ -277,7 +304,7 @@ export const App: React.FC = () => {
       <AirportDetailDrawer
         airport={selectedAirport}
         onClose={handleCloseAirportDrawer}
-        flights={flights}
+        flights={allFlights}
         filters={filters}
         onFiltersChange={setFilters}
         onSelectFlight={handleSelectFlight}
@@ -294,7 +321,8 @@ export const App: React.FC = () => {
         onClose={() => setIsPinnedDrawerOpen(false)}
         pinnedFlights={pinnedFlights}
         onSelectFlight={handleSelectFlight}
-        onUnpin={togglePin}
+        onUnpin={unpinFlight}
+        onClearAll={clearAllPinned}
         isPinnedOnly={filters.pinnedOnly}
         onTogglePinnedOnly={() => setFilters(prev => ({ ...prev, pinnedOnly: !prev.pinnedOnly }))}
       />

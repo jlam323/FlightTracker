@@ -285,23 +285,23 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
   }
 
   return (
-    <aside className="absolute top-0 right-0 bottom-0 z-30 w-full sm:w-[420px] bg-slate-950/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in slide-in-from-right duration-200">
+    <aside className="absolute top-0 right-0 bottom-0 z-30 w-full sm:w-[420px] bg-[#0c0d12]/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl flex flex-col text-neutral-100 overflow-hidden animate-in slide-in-from-right duration-200">
       {/* 1. Header: Airport Identity & Quick Actions */}
-      <div className="p-4 border-b border-slate-800/80 bg-slate-900/50 shrink-0">
+      <div className="p-4 border-b border-white/[0.08] bg-neutral-900/60 shrink-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-black font-mono tracking-tight text-sky-400">
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">
                 {airport.iata}
               </span>
-              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-[4px] bg-neutral-800 text-neutral-300 border border-white/[0.08]">
                 {airport.icao}
               </span>
             </div>
-            <h2 className="text-sm font-bold text-white truncate mt-1" title={airport.name}>
+            <h2 className="text-sm font-semibold text-white truncate mt-1" title={airport.name}>
               {airport.name}
             </h2>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-neutral-400 truncate">
               {airport.city}, {airport.country}
             </p>
           </div>
@@ -311,10 +311,10 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
             {onToggleBookmark && (
               <button
                 onClick={() => onToggleBookmark(airport)}
-                className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                className={`p-1.5 rounded-[5px] border transition-all cursor-pointer ${
                   isBookmarked
-                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
-                    : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                    : 'bg-neutral-900 hover:bg-neutral-800 border-white/[0.08] text-neutral-400 hover:text-white'
                 }`}
                 title={isBookmarked ? 'Remove airport bookmark' : 'Bookmark airport to MapControls'}
                 aria-label={isBookmarked ? 'Remove airport bookmark' : 'Bookmark airport to MapControls'}
@@ -330,7 +330,7 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
             {/* Focus Camera Button */}
             <button
               onClick={() => onFocusCamera(airport.latitude, airport.longitude)}
-              className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-1.5 rounded-[5px] bg-neutral-900 hover:bg-neutral-800 border border-white/[0.08] text-neutral-400 hover:text-white transition-all cursor-pointer"
               title="Focus map on airport"
             >
               <LocateFixed className="w-4 h-4" />
@@ -339,7 +339,7 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="p-1.5 rounded-[5px] bg-neutral-900 hover:bg-neutral-800 border border-white/[0.08] text-neutral-400 hover:text-white transition-all cursor-pointer"
               title="Close airport drawer"
             >
               <X className="w-4 h-4" />
@@ -349,7 +349,7 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
 
         {/* Active Filter Status Banner */}
         {hasActiveFilters && (
-          <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 font-medium">
+          <div className="mt-2.5 flex items-center justify-between px-2.5 py-1.5 rounded-[5px] bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 font-medium">
             <span className="flex items-center gap-1.5 truncate">
               <Filter className="w-3.5 h-3.5 shrink-0 text-amber-400" />
               <span className="truncate">
@@ -375,58 +375,58 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
       </div>
 
       {/* 2. Operations Summary Grid */}
-      <div className="p-4 border-b border-slate-800/80 bg-gradient-to-b from-slate-900/40 to-transparent shrink-0">
-        <div className="grid grid-cols-3 gap-2">
-          {/* Inbound Card */}
+      <div className="p-3 border-b border-white/[0.08] bg-neutral-900/20 shrink-0">
+        <div className="grid grid-cols-3 gap-1.5 bg-neutral-900/80 p-1 rounded-md border border-white/[0.08]">
+          {/* Inbound Tab */}
           <button
             onClick={() => setActiveTab('inbound')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1.5 rounded-[4px] text-center transition-all cursor-pointer ${
               activeTab === 'inbound'
-                ? 'bg-rose-500/15 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.15)]'
-                : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
+                ? 'bg-neutral-800 text-white shadow-xs border border-white/[0.08]'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
             }`}
           >
-            <div className="flex items-center gap-1.5 text-rose-400 mb-1">
-              <PlaneLanding className="w-4 h-4" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Inbound</span>
+            <div className="flex items-center gap-1 text-rose-400 mb-0.5">
+              <PlaneLanding className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Inbound</span>
             </div>
-            <span className="text-xl font-black font-mono text-white leading-none">
+            <span className="text-base font-bold font-mono tabular-nums text-white leading-tight">
               {inboundFlights.length}
             </span>
           </button>
 
-          {/* Outbound Card */}
+          {/* Outbound Tab */}
           <button
             onClick={() => setActiveTab('outbound')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1.5 rounded-[4px] text-center transition-all cursor-pointer ${
               activeTab === 'outbound'
-                ? 'bg-sky-500/15 border-sky-500/50 shadow-[0_0_12px_rgba(56,189,248,0.15)]'
-                : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
+                ? 'bg-neutral-800 text-white shadow-xs border border-white/[0.08]'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
             }`}
           >
-            <div className="flex items-center gap-1.5 text-sky-400 mb-1">
-              <PlaneTakeoff className="w-4 h-4" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Outbound</span>
+            <div className="flex items-center gap-1 text-sky-400 mb-0.5">
+              <PlaneTakeoff className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Outbound</span>
             </div>
-            <span className="text-xl font-black font-mono text-white leading-none">
+            <span className="text-base font-bold font-mono tabular-nums text-white leading-tight">
               {outboundFlights.length}
             </span>
           </button>
 
-          {/* On Ground Card */}
+          {/* On Ground Tab */}
           <button
             onClick={() => setActiveTab('ground')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1.5 rounded-[4px] text-center transition-all cursor-pointer ${
               activeTab === 'ground'
-                ? 'bg-slate-700/30 border-slate-600 shadow-[0_0_12px_rgba(148,163,184,0.15)]'
-                : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
+                ? 'bg-neutral-800 text-white shadow-xs border border-white/[0.08]'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50'
             }`}
           >
-            <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-              <Plane className="w-4 h-4" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">On Ground</span>
+            <div className="flex items-center gap-1 text-neutral-400 mb-0.5">
+              <Plane className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">On Ground</span>
             </div>
-            <span className="text-xl font-black font-mono text-white leading-none">
+            <span className="text-base font-bold font-mono tabular-nums text-white leading-tight">
               {groundFlights.length}
             </span>
           </button>
@@ -434,8 +434,8 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
       </div>
 
       {/* 3. Section Title & Current Tab Filter */}
-      <div className="px-4 py-2 bg-slate-950 border-b border-slate-800/80 flex items-center justify-between text-xs shrink-0">
-        <span className="font-semibold text-slate-300 uppercase tracking-wider text-[11px]">
+      <div className="px-4 py-1.5 bg-[#090a0f] border-b border-white/[0.08] flex items-center justify-between text-xs shrink-0">
+        <span className="font-semibold text-neutral-400 uppercase tracking-wider font-mono text-[10px]">
           {activeTab === 'inbound'
             ? `Inbound Flights (${inboundFlights.length})`
             : activeTab === 'outbound'
@@ -445,24 +445,24 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
       </div>
 
       {/* 4. Scrollable Flight List */}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto p-2.5 flex flex-col gap-1.5">
         {activeFlightList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
+            <div className="w-10 h-10 rounded-md bg-neutral-900 border border-white/[0.08] flex items-center justify-center text-neutral-500 mb-3">
               {activeTab === 'inbound' ? (
-                <PlaneLanding className="w-6 h-6 text-slate-600" />
+                <PlaneLanding className="w-5 h-5 text-neutral-500" />
               ) : activeTab === 'outbound' ? (
-                <PlaneTakeoff className="w-6 h-6 text-slate-600" />
+                <PlaneTakeoff className="w-5 h-5 text-neutral-500" />
               ) : (
-                <Plane className="w-6 h-6 text-slate-600" />
+                <Plane className="w-5 h-5 text-neutral-500" />
               )}
             </div>
-            <p className="text-sm font-semibold text-slate-300">
+            <p className="text-sm font-semibold text-neutral-300">
               {hasActiveFilters
                 ? `No matching ${activeTab} flights`
                 : `No active ${activeTab} flights`}
             </p>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">
+            <p className="text-xs text-neutral-500 mt-1 max-w-xs">
               {hasActiveFilters ? (
                 <span>
                   No {activeTab} flights match the active search or airline filter.{' '}
@@ -498,66 +498,66 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
               <div
                 key={flight.id}
                 onClick={() => onSelectFlight(flight)}
-                className="group relative flex flex-col p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                className="group relative flex flex-col p-2.5 rounded-[5px] bg-neutral-900/50 hover:bg-neutral-900 border border-white/[0.06] hover:border-white/[0.14] transition-all cursor-pointer shadow-xs"
               >
                 {/* Top Row: 1. Flight ID & 4. Timing Badge */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     {/* Radar Color Dot */}
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                      className="w-2 h-2 rounded-full shrink-0"
                       style={{
                         backgroundColor: colorHex,
-                        boxShadow: `0 0 8px ${colorHex}aa`,
+                        boxShadow: `0 0 6px ${colorHex}88`,
                       }}
                     />
 
                     {/* 1. Flight ID */}
-                    <span className="font-mono font-black text-sm text-white group-hover:text-sky-400 transition-colors tracking-tight">
+                    <span className="font-mono font-bold text-xs text-white group-hover:text-sky-400 transition-colors tracking-tight">
                       {flight.flightNumber}
                     </span>
 
                     {/* Optional Callsign badge */}
                     {flight.callsign && flight.callsign !== flight.flightNumber && (
-                      <span className="text-[10px] font-mono text-slate-400 bg-slate-800/90 px-1.5 py-0.5 rounded border border-slate-700/60">
+                      <span className="text-[10px] font-mono text-neutral-400 bg-neutral-800 px-1 py-0.2 rounded border border-white/[0.06]">
                         {flight.callsign}
                       </span>
                     )}
                   </div>
 
-                  {/* 4. Timing Pill Badge: Time before landing / Time before departure */}
+                  {/* 4. Timing Pill Badge */}
                   <div
-                    className={`px-2 py-0.5 rounded-md border text-[11px] font-mono font-semibold shrink-0 ${timing.badgeClass}`}
+                    className={`px-1.5 py-0.5 rounded-[4px] border text-[10px] font-mono font-semibold shrink-0 tabular-nums ${timing.badgeClass}`}
                   >
                     {timing.badgeText}
                   </div>
                 </div>
 
                 {/* Middle Row: 2. Origin -> Destination & Timing Subtext */}
-                <div className="flex items-center justify-between gap-2 mt-2">
+                <div className="flex items-center justify-between gap-2 mt-1.5">
                   {/* 2. Origin -> Destination */}
-                  <div className="flex items-center gap-1.5 font-mono text-xs">
+                  <div className="flex items-center gap-1.5 font-mono text-xs tabular-nums">
                     <span className="font-bold text-sky-300">{originStr}</span>
-                    <span className="text-slate-500 font-bold">→</span>
-                    <span className="font-bold text-rose-500">{destStr}</span>
+                    <span className="text-neutral-600 font-bold">→</span>
+                    <span className="font-bold text-emerald-300">{destStr}</span>
                   </div>
 
-                  {/* Timing secondary subtext (ETA, Taxiing, Altitude, etc.) */}
-                  <span className="text-[11px] font-mono text-slate-400 truncate text-right">
+                  {/* Timing secondary subtext */}
+                  <span className="text-[10px] font-mono text-neutral-400 truncate text-right">
                     {timing.subText}
                   </span>
                 </div>
 
                 {/* Bottom Row: 3. Airline Name & Inspect Action */}
-                <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-800/50 text-xs">
+                <div className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-white/[0.04] text-[10px] text-neutral-400">
                   {/* 3. Airline */}
-                  <span className="text-slate-400 text-[11px] truncate max-w-[250px]">
+                  <span className="truncate max-w-[250px]">
                     {airlineDisplay}
                   </span>
 
-                  <div className="flex items-center gap-1 text-[11px] text-slate-500 group-hover:text-sky-400 font-medium transition-colors shrink-0">
+                  <div className="flex items-center gap-1 text-[10px] text-neutral-500 group-hover:text-neutral-300 font-mono transition-colors shrink-0">
                     <span>Inspect</span>
-                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </div>
@@ -567,9 +567,9 @@ export const AirportDetailDrawer: React.FC<AirportDetailDrawerProps> = ({
       </div>
 
       {/* 5. Footer: Coordinates & External Link */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between text-xs text-slate-400 shrink-0">
-        <div className="flex items-center gap-1.5 font-mono text-[11px]">
-          <Navigation className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+      <div className="p-3 border-t border-white/[0.08] bg-neutral-900/60 flex items-center justify-between text-xs text-neutral-400 shrink-0">
+        <div className="flex items-center gap-1.5 font-mono text-[11px] tabular-nums">
+          <Navigation className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
           <span>
             {airport.latitude.toFixed(2)}°, {airport.longitude.toFixed(2)}°
           </span>

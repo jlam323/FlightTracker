@@ -60,74 +60,65 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-20 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5 flex items-center justify-between text-white shadow-xl">
+    <header className="absolute top-0 left-0 right-0 z-20 bg-[#090a0f]/90 backdrop-blur-md border-b border-white/[0.08] px-4 py-2 flex items-center justify-between text-neutral-100 shadow-md">
       {/* Brand & Stats */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3.5">
         <div className="flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-700/80 shadow-md">
-            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Flight Tracker" className="w-5 h-5 object-contain" />
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-          </div>
-
+          <img src={`${import.meta.env.BASE_URL}airplane-header.svg`} alt="Flight Tracker" className="w-8 h-8 object-contain" />
           <div>
-            <h1 className="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
+            <h1 className="text-sm font-semibold tracking-tight text-neutral-100 flex items-center gap-2">
               Flight Tracker
             </h1>
           </div>
-
         </div>
 
         {/* Live Counters */}
-        <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/90 border border-slate-800 px-3 py-1 rounded-full">
-          <span className="text-slate-500 font-normal">Showing</span>
-
-          <span className="flex items-center gap-1.5">
+        <div className="hidden md:flex items-center gap-2 text-[11px] font-mono tracking-tight text-neutral-400 bg-neutral-900/80 border border-white/[0.08] px-2.5 py-1 rounded-md">
+          <span className="flex items-center gap-1.5 tabular-nums">
             <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span className="text-slate-100 font-semibold">{flightCount.toLocaleString()}</span>
+            <span className="text-neutral-100 font-bold">{flightCount.toLocaleString()}</span>
             {totalFlightCount !== undefined && totalFlightCount !== flightCount && (
-              <span className="text-slate-500 font-normal">/{totalFlightCount.toLocaleString()}</span>
+              <span className="text-neutral-500">/{totalFlightCount.toLocaleString()}</span>
             )}{' '}
-            Flights
+            <span className="text-neutral-400 font-sans text-[11px]">AIRCRAFT</span>
           </span>
-          <span className="text-slate-600">•</span>
-          <span className="flex items-center gap-1">
+          <span className="text-neutral-700">|</span>
+          <span className="flex items-center gap-1 tabular-nums text-neutral-300">
             <Redo className="w-3 h-3 text-sky-400" />
-            <span className="text-sky-300 font-semibold">{arcCount.toLocaleString()}</span> Arcs
+            <span className="text-sky-400 font-bold">{arcCount.toLocaleString()}</span>
+            <span className="text-neutral-400 font-sans text-[11px]">ROUTES</span>
           </span>
         </div>
       </div>
 
       {/* Center: Scope Toggle (North America vs Global) */}
-      <div className="flex items-center bg-slate-900/90 border border-slate-800 p-0.5 rounded-lg text-xs font-medium">
+      <div className="flex items-center bg-neutral-900/90 border border-white/[0.08] p-0.5 rounded-md text-xs font-medium">
         <button
           onClick={() => handleRegionToggle('north_america')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] transition-all cursor-pointer ${
             filters.region === 'north_america'
-              ? 'bg-sky-600 text-white font-semibold shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-neutral-800 text-white font-medium shadow-xs border border-white/[0.08]'
+              : 'text-neutral-400 hover:text-neutral-200'
           }`}
         >
           <MapPin className="w-3.5 h-3.5" />
-          North America
+          <span>North America</span>
         </button>
 
         <button
           onClick={() => handleRegionToggle('global')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] transition-all cursor-pointer ${
             filters.region === 'global'
-              ? 'bg-sky-600 text-white font-semibold shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-neutral-800 text-white font-medium shadow-xs border border-white/[0.08]'
+              : 'text-neutral-400 hover:text-neutral-200'
           }`}
           title={isFilterActive ? 'Global View' : 'Global view has capped flight counts without a filter'}
         >
           <Globe className="w-3.5 h-3.5" />
-          Global
+          <span>Global</span>
           {!isFilterActive && (
-            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-normal border border-amber-500/30">
-              Capped
+            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/15 text-amber-300 font-mono border border-amber-500/30">
+              CAPPED
             </span>
           )}
         </button>
@@ -149,12 +140,12 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'Simulated'
                 }. Click to switch to Simulated Mode.`
           }
-          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border transition-all ${
+          className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono tracking-tight border transition-all cursor-pointer ${
             isMockMode
-              ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
               : activeSource === 'opensky'
-              ? 'bg-sky-500/15 border-sky-500/40 text-sky-300 hover:bg-sky-500/25'
-              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
+              ? 'bg-sky-500/10 border-sky-500/30 text-sky-300 hover:bg-sky-500/20'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
           }`}
         >
           <span
@@ -162,43 +153,43 @@ export const Header: React.FC<HeaderProps> = ({
               isMockMode
                 ? 'bg-amber-400'
                 : activeSource === 'opensky'
-                ? 'bg-sky-400 animate-pulse'
-                : 'bg-emerald-400 animate-pulse'
+                ? 'bg-sky-400'
+                : 'bg-emerald-400'
             }`}
           />
           {isMockMode
-            ? 'Simulated Feed'
+            ? 'SIMULATED'
             : activeSource === 'opensky'
-            ? 'Live: OpenSky'
-            : 'Live: FR24'}
+            ? 'OPENSKY'
+            : 'FR24 LIVE'}
         </button>
 
         {/* Last Updated Timestamp */}
         <div
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono bg-slate-900/90 border border-slate-800 text-slate-400"
+          className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono tabular-nums bg-neutral-900/80 border border-white/[0.08] text-neutral-400"
           title={lastUpdated ? `APIs last called at ${lastUpdated.toLocaleTimeString()}` : 'Live data not yet fetched'}
         >
-          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="text-slate-400 hidden md:inline">Updated:</span>
-          <span className="text-slate-200 font-semibold">
-            {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Loading...'}
+          <Clock className="w-3 h-3 text-neutral-500 shrink-0" />
+          <span className="text-neutral-200">
+            {'Updated '}
+            {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--:--'}
           </span>
         </div>
 
         {/* Pinned Flights Button */}
         <button
           onClick={onTogglePinnedDrawer}
-          className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-all ${
+          className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all cursor-pointer ${
             pinnedCount > 0
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
-              : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+              ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+              : 'bg-neutral-900/80 border-white/[0.08] text-neutral-300 hover:bg-neutral-800 hover:text-white'
           }`}
           title="View Pinned Flights"
         >
           <Bookmark className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Pinned</span>
           {pinnedCount > 0 && (
-            <span className="flex items-center justify-center w-4 h-4 rounded-full bg-amber-400 text-slate-950 font-bold text-[10px]">
+            <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded bg-amber-400 text-neutral-950 font-bold text-[10px] font-mono tabular-nums">
               {pinnedCount}
             </span>
           )}
@@ -208,10 +199,10 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onRefresh}
           disabled={isLoading || isRefreshing}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-neutral-900/80 hover:bg-neutral-800 border border-white/[0.08] text-neutral-300 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
           title={`Last updated: ${lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}`}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-sky-400' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-sky-400' : 'text-neutral-400'}`} />
           <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
