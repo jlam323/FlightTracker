@@ -77,6 +77,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
 
       const hasSearch = Boolean(searchQuery?.trim())
       const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
+      const cleanAirport = selectedAirportCode?.trim().toUpperCase()
 
       let count = 0
       for (const f of flights) {
@@ -86,18 +87,33 @@ export const FlightMap: React.FC<FlightMapProps> = ({
           Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
           f.id.toUpperCase().includes(cleanQuery)
         )
-        const matchesAirport = selectedAirportCode && (
-          f.originIata?.toUpperCase() === selectedAirportCode.toUpperCase() ||
-          f.destIata?.toUpperCase() === selectedAirportCode.toUpperCase() ||
-          f.originAirport?.iata.toUpperCase() === selectedAirportCode.toUpperCase() ||
-          f.destAirport?.iata.toUpperCase() === selectedAirportCode.toUpperCase()
+        const matchesAirport = cleanAirport && (
+          f.originIata?.toUpperCase() === cleanAirport ||
+          f.destIata?.toUpperCase() === cleanAirport ||
+          f.originAirport?.iata.toUpperCase() === cleanAirport ||
+          f.destAirport?.iata.toUpperCase() === cleanAirport
         )
         if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) continue
-        const inLon =
-          minLon <= maxLon
-            ? f.longitude >= minLon && f.longitude <= maxLon
-            : f.longitude >= minLon || f.longitude <= maxLon
-        if (inLon && f.latitude >= minLat && f.latitude <= maxLat) {
+
+        const lat = f.onGround && (f.originAirport || f.destAirport)
+          ? (f.originAirport || f.destAirport)!.latitude
+          : f.latitude
+        const lon = f.onGround && (f.originAirport || f.destAirport)
+          ? (f.originAirport || f.destAirport)!.longitude
+          : f.longitude
+
+        let isVisible = false
+        for (const offset of [0, -360, 360]) {
+          try {
+            const [px, py] = vp.project([lon + offset, lat])
+            if (px >= 0 && px <= width && py >= 0 && py <= height) {
+              isVisible = true
+              break
+            }
+          } catch {}
+        }
+
+        if (isVisible) {
           count++
         }
       }
@@ -109,12 +125,15 @@ export const FlightMap: React.FC<FlightMapProps> = ({
 
   // Dynamically scale max aircraft allowed for displaying flight IDs with zoom level
   const maxPlanesForLabels = useMemo(() => {
-    const clampedZoom = Math.max(3.0, Math.min(8.5, viewState.zoom))
-    return Math.round(35 + Math.pow((clampedZoom - 3.0) / 5.5, 1.4) * 465)
+    // Clamped between min zoom 1.5 (global) and high zoom 9.0
+    const clampedZoom = Math.max(1.5, Math.min(9.0, viewState.zoom))
+    const t = (clampedZoom - 1.5) / 7.5
+    // Global starts at 35 planes, scaling up to 800 planes at high zoom
+    return Math.round(35 + Math.pow(t, 1.4) * 765)
   }, [viewState.zoom])
 
-  const isLowAirplaneDensity = visibleFlightCount <= maxPlanesForLabels
-  const shouldShowFlightLabels = hasActiveFilter || isLowAirplaneDensity
+  const isLowAirplaneDensity = visibleFlightCount > 0 && visibleFlightCount <= maxPlanesForLabels
+  const shouldShowFlightLabels = isLowAirplaneDensity
 
   // Resolve currently selected flight & origin/dest/hub airports
   const selectedFlight = useMemo(() => {

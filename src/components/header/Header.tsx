@@ -147,7 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <MapPin className="w-3.5 h-3.5" />
           <span>North America</span>
         </button>
 

@@ -46,9 +46,9 @@ export function createFlightLabelsLayer({
 
     if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) return false
     if (matchesSearch) return true
-    if (matchesAirport) return true
-    if (shouldShowFlightLabels) return true
     if (f.id === selectedFlightId || f.id === hoveredFlightId || pinnedSet.has(f.id)) return true
+    if (matchesAirport) return shouldShowFlightLabels
+    if (shouldShowFlightLabels) return true
     return false
   })
 
