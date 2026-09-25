@@ -2,17 +2,17 @@
 
 A real-time commercial flight radar and airspace visualization app built with React 19, TypeScript, Deck.gl, and MapLibre GL. It renders live flight locations, route arcs, and airport operations across North America and global airspace.
 
-<!-- ![Flight Tracker Dashboard](./docs/dashboard-screenshot.png) -->
+![Flight Tracker Dashboard](docs/dashboard-view.png)
+
 ---
 
 ## Features
 
-### 1. Real-Time Radar Map & Flight Route Arcs
+### 1. Radar Map & Flight Route Arcs
+Flight data is pulled live from FlightRadar24 and OpenSky Network ADS-B feeds, with a fallback simulation for offline use to render:
 * **Heading-Oriented Aircraft Icons**: Aircraft silhouettes rotate in real-time according to true heading, with colour coding to distinguish between different flights based on current altitude.
 * **Route Arcs**: Every airborne flight displays its continuous route arc connecting origin and destination airports. Arcs are strictly bound 1:1 to active flights.
 * **Hardware-Accelerated WebGL Rendering**: Uses Deck.gl (`IconLayer`, `ArcLayer`, `ScatterplotLayer`, `TextLayer`) over a Carto Dark Matter base map for smooth 60 FPS rendering with thousands of simultaneous entities.
-
-<!-- ![Flight Detail Drawer](./docs/airplane-view.png) -->
 
 ### 2. Flight Detail Inspector
 Clicking any aircraft opens a slide-out panel with detailed operational data:
@@ -22,8 +22,7 @@ Clicking any aircraft opens a slide-out panel with detailed operational data:
 * **Flight Watchlist**: Pin flights to a personal watchlist stored in `localStorage` that persists across sessions.
 * **Direct Links**: Quick jump to the flight's live Flightradar24 page.
 
-<!-- ![Airport Detail Drawer 1](./docs/airport-inbound-view.png) -->
-<!-- ![Airport Detail Drawer 2](./docs/airport-outbound-view.png) -->
+![Flight Detail Drawer](docs/airplane-view.png)
 
 ### 3. Airport Operations & Hub Tracking
 Clicking any of the 280+ supported commercial airports opens a dedicated hub panel:
@@ -34,6 +33,9 @@ Clicking any of the 280+ supported commercial airports opens a dedicated hub pan
 * **GPS Proximity Guard**: Outbound and ground flight lists verify that aircraft are physically present within 25 nautical miles of the aerodrome, preventing cross-continent false matches.
 * **One-Click Hub Filter**: Isolates the map to only show flights originating from or landing at that airport.
 * **Custom Hub Bookmarks**: Quick-jump buttons in the bottom-left controls for major hubs (JFK, ORD, LAX, ATL, DFW, YYZ), with saved bookmarks persisted in cookies.
+
+![Airport Inbound Operations](docs/airport-inbound-view.png)
+![Airport Outbound Operations](docs/airport-outbound-view.png)
 
 ### 4. Search & Multi-Criteria Filtering
 * **Flight ID & Callsign Search**: Instant search by commercial flight number (e.g. `DL1234`, `UA240`) or ATC callsign. Taxiing and grounded aircraft matching the search query appear on the map.
@@ -59,11 +61,6 @@ The app uses a 3-tier fallback pipeline to guarantee continuous radar display:
 1. **Primary Feed (Flightradar24)**: Rich commercial flight feed including aircraft coordinates, altitude, speed, heading, and scheduled origin/destination pairs.
 2. **Secondary Feed (OpenSky Network)**: Direct ADS-B state vectors within regional bounding boxes.
 3. **Fallback Simulation**: If live feeds are unreachable or rate-limited, the system falls back to an offline simulated feed that advances aircraft along Great-Circle routes.
-
-### Proxy & CORS Handling
-Live aviation APIs restrict direct browser requests via CORS and header verification:
-* **Local Development**: `vite.config.ts` proxies `/api/fr24` and `/api/opensky` to the upstream servers, attaching the required browser headers.
-* **Production**: Lightweight Vercel Edge Functions in `api/fr24.ts` and `api/opensky.ts` execute on Vercel's global edge network to fetch upstream data and return it with open CORS headers.
 
 ---
 
