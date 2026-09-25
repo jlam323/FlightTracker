@@ -1,6 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl'
 
-export const AIRPLANE_ICON_ATLAS = '/airplane.svg'
+export const AIRPLANE_ICON_ATLAS = `${import.meta.env.BASE_URL}airplane.svg`
 
 export const AIRPLANE_ICON_MAPPING = {
   airplane: {

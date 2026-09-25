@@ -24,7 +24,7 @@ export function createFlightOdLabelsLayer({
   onHoverFlight,
 }: FlightOdLabelsLayerProps): TextLayer<Flight & { odText: string }> | null {
   const targetFlights = flights.filter(
-    f => (f.id === hoveredFlightId || f.id === selectedFlightId) && (!f.onGround || f.id === selectedFlightId)
+    f => f.id === hoveredFlightId || f.id === selectedFlightId
   )
   if (targetFlights.length === 0) return null
 

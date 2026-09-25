@@ -48,7 +48,9 @@ export const Header: React.FC<HeaderProps> = ({
     Boolean(filters.airlineIcao) ||
     Boolean(filters.originAirport.trim()) ||
     Boolean(filters.destAirport.trim()) ||
-    Boolean(filters.airportCode)
+    Boolean(filters.airportCode) ||
+    Boolean(filters.pinnedOnly) ||
+    Boolean(filters.flightStates && filters.flightStates.length > 0)
 
   const handleRegionToggle = (newRegion: 'north_america' | 'global') => {
     onFiltersChange({
@@ -63,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2.5">
           <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-700/80 shadow-md">
-            <img src="/favicon.svg" alt="Flight Tracker" className="w-5 h-5 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Flight Tracker" className="w-5 h-5 object-contain" />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>

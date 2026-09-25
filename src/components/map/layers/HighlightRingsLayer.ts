@@ -14,7 +14,7 @@ export function createHighlightRingsLayer({
   pinnedSet,
 }: HighlightRingsLayerProps): ScatterplotLayer<Flight> | null {
   const highlightedFlights = flights.filter(
-    f => (f.id === selectedFlightId || pinnedSet.has(f.id)) && (!f.onGround || f.id === selectedFlightId)
+    f => f.id === selectedFlightId || pinnedSet.has(f.id)
   )
   if (highlightedFlights.length === 0) return null
 

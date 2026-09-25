@@ -81,6 +81,7 @@ export interface FlightFilters {
   hideOnGround?: boolean        // Optional: Filter out parked / taxiing planes
   region: 'north_america' | 'global'
   flightStates?: FlightState[]  // Filter by altitude / status flight states
+  pinnedOnly?: boolean          // Filter to show only pinned flights
 }
 
 

@@ -34,6 +34,7 @@ interface FlightMapProps {
   onViewStateChange: (viewState: any) => void
   showAirportCodes?: boolean
   hasActiveFilter?: boolean
+  searchQuery?: string
 }
 
 export const FlightMap: React.FC<FlightMapProps> = ({
@@ -48,6 +49,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
   onViewStateChange,
   showAirportCodes = true,
   hasActiveFilter = false,
+  searchQuery,
 }) => {
   const pinnedSet = useMemo(() => new Set(pinnedFlightIds), [pinnedFlightIds])
   const [hoveredFlightId, setHoveredFlightId] = useState<string | null>(null)
@@ -69,9 +71,18 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       })
       const [minLon, minLat, maxLon, maxLat] = vp.getBounds()
 
+      const hasSearch = Boolean(searchQuery?.trim())
+      const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
+
       let count = 0
       for (const f of flights) {
-        if (f.onGround && f.id !== selectedFlightId) continue
+        const matchesSearch = hasSearch && (
+          f.flightNumber.toUpperCase().includes(cleanQuery) ||
+          f.callsign.toUpperCase().includes(cleanQuery) ||
+          Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
+          f.id.toUpperCase().includes(cleanQuery)
+        )
+        if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id)) continue
         const inLon =
           minLon <= maxLon
             ? f.longitude >= minLon && f.longitude <= maxLon
@@ -84,7 +95,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     } catch {
       return flights.length
     }
-  }, [flights, selectedFlightId, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
+  }, [flights, selectedFlightId, pinnedSet, searchQuery, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
 
   // Dynamically scale max aircraft allowed for displaying flight IDs with zoom level
   const maxPlanesForLabels = useMemo(() => {
@@ -197,6 +208,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       hoveredFlightId,
       pinnedSet,
       bearing: viewState.bearing,
+      searchQuery,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -207,6 +219,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       selectedFlightId,
       hoveredFlightId,
       pinnedSet,
+      searchQuery,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -243,6 +256,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     sortedFlights,
     hoveredFlightId,
     shouldShowFlightLabels,
+    searchQuery,
     handleAirportClick,
     handleAirportHover,
     handleFlightClick,

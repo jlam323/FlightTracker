@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, Bookmark, Plane, ChevronRight, Trash2 } from 'lucide-react'
+import { X, Bookmark, BookmarkCheck, Plane, ChevronRight, Trash2 } from 'lucide-react'
 import { Flight } from '../../types/flight'
 import { formatDuration } from '../../utils/geo'
 
@@ -9,6 +9,8 @@ interface PinnedFlightsDrawerProps {
   pinnedFlights: Flight[]
   onSelectFlight: (flight: Flight) => void
   onUnpin: (flightId: string) => void
+  isPinnedOnly?: boolean
+  onTogglePinnedOnly?: () => void
 }
 
 export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
@@ -17,6 +19,8 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
   pinnedFlights,
   onSelectFlight,
   onUnpin,
+  isPinnedOnly = false,
+  onTogglePinnedOnly,
 }) => {
   if (!isOpen) return null
 
@@ -32,11 +36,38 @@ export const PinnedFlightsDrawer: React.FC<PinnedFlightsDrawerProps> = ({
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white"
+          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Quick Map Filter Toggle */}
+      {pinnedFlights.length > 0 && onTogglePinnedOnly && (
+        <div className="px-4 py-2 bg-slate-900/40 border-b border-slate-800/80 flex items-center justify-between text-xs">
+          <span className="text-slate-400">Map Filter:</span>
+          <button
+            onClick={onTogglePinnedOnly}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+              isPinnedOnly
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
+            }`}
+          >
+            {isPinnedOnly ? (
+              <>
+                <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Showing Pinned Only</span>
+              </>
+            ) : (
+              <>
+                <Bookmark className="w-3.5 h-3.5 text-slate-400" />
+                <span>Filter Map to Pinned</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Flight List */}
       <div className="p-3 space-y-2 flex-1 overflow-y-auto">

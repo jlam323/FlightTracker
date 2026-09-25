@@ -31,21 +31,41 @@ export function filterFlights(
     ? FLIGHT_STATE_CONFIGS.filter(c => filters.flightStates!.includes(c.id))
     : []
 
+  const hasSearchQuery = Boolean(filters.searchQuery?.trim())
+  const query = hasSearchQuery ? filters.searchQuery.trim().toUpperCase() : ''
+
   return flights.filter(flight => {
-    // 1. Region filter
+    // Check if flight matches active search query (Flight ID, Callsign, Registration)
+    const matchesSearch = hasSearchQuery && (
+      flight.flightNumber.toUpperCase().includes(query) ||
+      flight.callsign.toUpperCase().includes(query) ||
+      Boolean(flight.registration?.toUpperCase().includes(query)) ||
+      flight.id.toUpperCase().includes(query)
+    )
+
+    // 1. If search query is typed, flight must match it
+    if (hasSearchQuery && !matchesSearch) {
+      return false
+    }
+
+    // 2. Region filter
     if (filters.region === 'north_america') {
-      if (!isWithinNorthAmerica(flight.latitude, flight.longitude)) {
+      const lat = flight.onGround && flight.originAirport ? flight.originAirport.latitude : flight.latitude
+      const lon = flight.onGround && flight.originAirport ? flight.originAirport.longitude : flight.longitude
+      if (!isWithinNorthAmerica(lat, lon)) {
         return false
       }
     }
 
-    // 2. Hide on ground
-    if (filters.hideOnGround && flight.onGround) {
+    // 3. Hide on ground (bypassed if flight matches user's active search query or is pinned when pinnedOnly is set)
+    const isPinnedFlight = Boolean(pinnedIds?.includes(flight.id))
+    if (!matchesSearch && filters.hideOnGround && flight.onGround && !(filters.pinnedOnly && isPinnedFlight)) {
       return false
     }
 
-    // 3. Flight State filter (High Cruise, Mid Altitude, Climb/Approach, Pinned)
-    if (hasFlightStates && activeStateConfigs.length > 0) {
+    // 4. Flight State filter (High Cruise, Mid Altitude, Climb/Approach, Pinned)
+    // Bypassed if flight matches user's active search query
+    if (!matchesSearch && hasFlightStates && activeStateConfigs.length > 0) {
       const matchesAnyState = activeStateConfigs.some(config =>
         config.predicate(flight, pinnedIds)
       )
@@ -54,14 +74,9 @@ export function filterFlights(
       }
     }
 
-    // 4. Search query (Flight ID, Callsign, Registration)
-    if (filters.searchQuery.trim()) {
-      const query = filters.searchQuery.trim().toUpperCase()
-      const matchNum = flight.flightNumber.toUpperCase().includes(query)
-      const matchCall = flight.callsign.toUpperCase().includes(query)
-      const matchReg = flight.registration?.toUpperCase().includes(query)
-      const matchId = flight.id.toUpperCase().includes(query)
-      if (!matchNum && !matchCall && !matchReg && !matchId) {
+    // 5. Pinned Only filter (bypassed if flight matches user's active search query)
+    if (!matchesSearch && filters.pinnedOnly) {
+      if (!isPinnedFlight) {
         return false
       }
     }

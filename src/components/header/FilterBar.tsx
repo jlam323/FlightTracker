@@ -6,6 +6,8 @@ import {
   PlaneLanding,
   Building2,
   MapPin,
+  Bookmark,
+  BookmarkCheck,
 } from 'lucide-react'
 import { Flight, FlightFilters } from '../../types/flight'
 import { AIRLINES } from '../../data/airlines'
@@ -33,6 +35,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     Boolean(filters.originAirport.trim()) ||
     Boolean(filters.destAirport.trim()) ||
     Boolean(filters.airportCode) ||
+    Boolean(filters.pinnedOnly) ||
     Boolean(filters.flightStates && filters.flightStates.length > 0)
 
   const handleClearAll = () => {
@@ -44,6 +47,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       destAirport: '',
       airportCode: undefined,
       flightStates: [],
+      pinnedOnly: false,
     })
   }
 
@@ -96,6 +100,37 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         pinnedIds={pinnedIds}
         disabled={isAirportViewOpen}
       />
+
+      {/* Pinned Only Toggle */}
+      <button
+        type="button"
+        onClick={() => onFiltersChange({ ...filters, pinnedOnly: !filters.pinnedOnly })}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all text-xs font-medium cursor-pointer ${
+          filters.pinnedOnly
+            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
+            : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:text-white hover:border-slate-600'
+        }`}
+        title={filters.pinnedOnly ? 'Show all flights' : 'Filter by pinned flights only'}
+        aria-pressed={Boolean(filters.pinnedOnly)}
+      >
+        {filters.pinnedOnly ? (
+          <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
+        ) : (
+          <Bookmark className="w-3.5 h-3.5 text-slate-400" />
+        )}
+        <span>Pinned Only</span>
+        {pinnedIds.length > 0 && (
+          <span
+            className={`text-[10px] font-mono px-1.5 py-0.5 rounded leading-none ${
+              filters.pinnedOnly
+                ? 'bg-amber-400/20 text-amber-200'
+                : 'bg-slate-800 text-slate-400'
+            }`}
+          >
+            {pinnedIds.length}
+          </span>
+        )}
+      </button>
 
 
       {/* Route: Origin Airport */}

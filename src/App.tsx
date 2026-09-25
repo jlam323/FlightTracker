@@ -20,6 +20,7 @@ export const App: React.FC = () => {
     airlineIcao: '',
     originAirport: '',
     destAirport: '',
+    pinnedOnly: false,
   })
 
   // 2. Map Camera ViewState
@@ -83,27 +84,34 @@ export const App: React.FC = () => {
 
   const filteredArcs = useMemo(() => {
     const baseArcs = arcs.filter(a => activeFlightIdSet.has(a.flightId))
-    if (selectedFlight && selectedFlight.onGround && selectedFlight.originAirport && selectedFlight.destAirport) {
-      const hasSelectedArc = baseArcs.some(a => a.flightId === selectedFlight.id)
-      if (!hasSelectedArc) {
-        baseArcs.push({
-          id: `arc-${selectedFlight.id}`,
-          flightId: selectedFlight.id,
-          flightNumber: selectedFlight.flightNumber,
-          source: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
-          target: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
-          originIata: selectedFlight.originAirport.iata,
-          destIata: selectedFlight.destAirport.iata,
-          flownSource: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
-          flownTarget: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
-          remSource: [selectedFlight.originAirport.longitude, selectedFlight.originAirport.latitude],
-          remTarget: [selectedFlight.destAirport.longitude, selectedFlight.destAirport.latitude],
-          isHighlighted: true,
-        })
+    const hasSearchQuery = Boolean(filters.searchQuery?.trim())
+
+    for (const flight of filteredFlights) {
+      if (flight.onGround && flight.originAirport && flight.destAirport) {
+        const isSelected = flight.id === selectedFlightId
+        if (isSelected || hasSearchQuery) {
+          const hasArc = baseArcs.some(a => a.flightId === flight.id)
+          if (!hasArc) {
+            baseArcs.push({
+              id: `arc-${flight.id}`,
+              flightId: flight.id,
+              flightNumber: flight.flightNumber,
+              source: [flight.originAirport.longitude, flight.originAirport.latitude],
+              target: [flight.destAirport.longitude, flight.destAirport.latitude],
+              originIata: flight.originAirport.iata,
+              destIata: flight.destAirport.iata,
+              flownSource: [flight.originAirport.longitude, flight.originAirport.latitude],
+              flownTarget: [flight.destAirport.longitude, flight.destAirport.latitude],
+              remSource: [flight.originAirport.longitude, flight.originAirport.latitude],
+              remTarget: [flight.destAirport.longitude, flight.destAirport.latitude],
+              isHighlighted: isSelected,
+            })
+          }
+        }
       }
     }
     return baseArcs
-  }, [arcs, activeFlightIdSet, selectedFlight])
+  }, [arcs, activeFlightIdSet, filteredFlights, filters.searchQuery, selectedFlightId])
 
   // Resolve pinned flights objects
   const pinnedFlights = useMemo(() => {
@@ -119,6 +127,7 @@ export const App: React.FC = () => {
       filters.originAirport.trim() ||
       filters.destAirport.trim() ||
       filters.airportCode ||
+      filters.pinnedOnly ||
       (filters.flightStates && filters.flightStates.length > 0)
     )
   }, [filters])
@@ -239,6 +248,7 @@ export const App: React.FC = () => {
         onViewStateChange={setViewState}
         showAirportCodes={showAirportCodes}
         hasActiveFilter={hasActiveFilter}
+        searchQuery={filters.searchQuery}
       />
 
       {/* 4. Map Camera & Hub Controls */}
@@ -285,6 +295,8 @@ export const App: React.FC = () => {
         pinnedFlights={pinnedFlights}
         onSelectFlight={handleSelectFlight}
         onUnpin={togglePin}
+        isPinnedOnly={filters.pinnedOnly}
+        onTogglePinnedOnly={() => setFilters(prev => ({ ...prev, pinnedOnly: !prev.pinnedOnly }))}
       />
 
     </div>

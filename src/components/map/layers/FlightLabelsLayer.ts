@@ -8,6 +8,7 @@ export interface FlightLabelsLayerProps {
   selectedFlightId?: string
   hoveredFlightId: string | null
   pinnedSet: Set<string>
+  searchQuery?: string
   onClickFlight?: (info: { object?: unknown }) => void
   onHoverFlight?: (info: { object?: unknown }) => void
 }
@@ -18,11 +19,23 @@ export function createFlightLabelsLayer({
   selectedFlightId,
   hoveredFlightId,
   pinnedSet,
+  searchQuery,
   onClickFlight,
   onHoverFlight,
 }: FlightLabelsLayerProps): TextLayer<Flight> | null {
+  const hasSearch = Boolean(searchQuery?.trim())
+  const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
+
   const labelFlights = flights.filter(f => {
-    if (f.onGround && f.id !== selectedFlightId) return false
+    const matchesSearch = hasSearch && (
+      f.flightNumber.toUpperCase().includes(cleanQuery) ||
+      f.callsign.toUpperCase().includes(cleanQuery) ||
+      Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
+      f.id.toUpperCase().includes(cleanQuery)
+    )
+
+    if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id)) return false
+    if (matchesSearch) return true
     if (shouldShowFlightLabels) return true
     if (f.id === selectedFlightId || f.id === hoveredFlightId || pinnedSet.has(f.id)) return true
     return false
@@ -65,7 +78,7 @@ export function createFlightLabelsLayer({
     onHover: onHoverFlight,
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
-      getPosition: [selectedFlightId],
+      getPosition: [selectedFlightId, searchQuery],
       getColor: [selectedFlightId, hoveredFlightId],
       getPixelOffset: [selectedFlightId, hoveredFlightId],
     },
