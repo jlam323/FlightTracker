@@ -273,6 +273,24 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
               {flight.onGround ? 'On Ground' : 'Airborne'}
             </span>
           </div>
+          {flight.source && (
+            <div className="flex justify-between">
+              <span className="text-slate-400">Data Source:</span>
+              <span className={`font-mono text-[11px] font-medium ${
+                flight.source === 'fr24'
+                  ? 'text-emerald-400'
+                  : flight.source === 'opensky'
+                  ? 'text-sky-400'
+                  : 'text-amber-400'
+              }`}>
+                {flight.source === 'fr24'
+                  ? 'Flightradar24 Live'
+                  : flight.source === 'opensky'
+                  ? 'OpenSky ADS-B'
+                  : 'Simulated Radar'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Action Controls */}

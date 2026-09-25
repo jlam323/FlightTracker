@@ -53,13 +53,17 @@ export interface FlightArc {
   id: string
   flightId: string
   flightNumber: string
-  // Flown segment: Origin -> Current Position
-  flownSource: [number, number] // [lon, lat]
-  flownTarget: [number, number]
-  // Remaining segment: Current Position -> Destination
-  remSource: [number, number]
-  remTarget: [number, number]
+  // Full route segment: Origin Airport -> Destination Airport
+  source: [number, number] // [lon, lat]
+  target: [number, number] // [lon, lat]
+  originIata?: string
+  destIata?: string
   isHighlighted?: boolean
+  // Optional backward-compatibility fields
+  flownSource?: [number, number]
+  flownTarget?: [number, number]
+  remSource?: [number, number]
+  remTarget?: [number, number]
 }
 
 export interface FlightFilters {
@@ -67,6 +71,7 @@ export interface FlightFilters {
   airlineIcao: string           // Matches airline prefix
   originAirport: string         // Origin IATA or ICAO
   destAirport: string           // Destination IATA or ICAO
+  airportCode?: string          // Matches either Origin OR Destination IATA/ICAO
   hideOnGround: boolean         // Filter out parked / taxiing planes
   region: 'north_america' | 'global'
 }

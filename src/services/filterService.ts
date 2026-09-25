@@ -77,6 +77,18 @@ export function applyFlightFilters(flights: Flight[], filters: FlightFilters): F
       }
     }
 
+    // 7. Airport filter (either Origin OR Destination)
+    if (filters.airportCode && filters.airportCode.trim()) {
+      const airport = filters.airportCode.trim().toUpperCase()
+      const matchOrigIata = flight.originIata?.toUpperCase() === airport
+      const matchOrigIcao = flight.originAirport?.icao.toUpperCase() === airport
+      const matchDestIata = flight.destIata?.toUpperCase() === airport
+      const matchDestIcao = flight.destAirport?.icao.toUpperCase() === airport
+      if (!matchOrigIata && !matchOrigIcao && !matchDestIata && !matchDestIcao) {
+        return false
+      }
+    }
+
     return true
   }) as unknown as Flight
 }
@@ -133,6 +145,18 @@ export function filterFlights(flights: Flight[], filters: FlightFilters): Flight
       const matchIata = flight.destIata?.toUpperCase() === dest
       const matchIcao = flight.destAirport?.icao.toUpperCase() === dest
       if (!matchIata && !matchIcao) {
+        return false
+      }
+    }
+
+    // 7. Airport filter (either Origin OR Destination)
+    if (filters.airportCode && filters.airportCode.trim()) {
+      const airport = filters.airportCode.trim().toUpperCase()
+      const matchOrigIata = flight.originIata?.toUpperCase() === airport
+      const matchOrigIcao = flight.originAirport?.icao.toUpperCase() === airport
+      const matchDestIata = flight.destIata?.toUpperCase() === airport
+      const matchDestIcao = flight.destAirport?.icao.toUpperCase() === airport
+      if (!matchOrigIata && !matchOrigIcao && !matchDestIata && !matchDestIcao) {
         return false
       }
     }

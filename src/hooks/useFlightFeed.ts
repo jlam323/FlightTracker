@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Flight, FlightArc } from '../types/flight'
+import { Flight, FlightArc, FlightSource } from '../types/flight'
 import { fetchFlightFeed } from '../api/flightApi'
 
 interface UseFlightFeedOptions {
   region: 'north_america' | 'global'
   forceMock?: boolean
   selectedFlightId?: string
-  pollIntervalMs?: number // e.g. 60000 (1 min) or 300000 (5 mins)
+  pollIntervalMs?: number
 }
 
 export function useFlightFeed({
@@ -20,11 +20,14 @@ export function useFlightFeed({
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [isMockMode, setIsMockMode] = useState<boolean>(forceMock)
+  const [activeSource, setActiveSource] = useState<FlightSource>('fr24')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const selectedFlightIdRef = useRef(selectedFlightId)
-  selectedFlightIdRef.current = selectedFlightId
+  useEffect(() => {
+    selectedFlightIdRef.current = selectedFlightId
+  }, [selectedFlightId])
 
   const loadData = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) {
@@ -42,6 +45,7 @@ export function useFlightFeed({
       setArcs(response.arcs)
       setLastUpdated(new Date(response.timestamp))
       setIsMockMode(response.isMock)
+      setActiveSource(response.source)
       setErrorMessage(response.error || null)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown fetch error'
@@ -52,7 +56,6 @@ export function useFlightFeed({
     }
   }, [region, forceMock])
 
-  // Initial fetch and polling cycle
   useEffect(() => {
     loadData(false)
 
@@ -69,6 +72,7 @@ export function useFlightFeed({
     isLoading,
     isRefreshing,
     isMockMode,
+    activeSource,
     lastUpdated,
     errorMessage,
     refresh: () => loadData(true),

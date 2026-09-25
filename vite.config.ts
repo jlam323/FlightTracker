@@ -3,11 +3,15 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
+// Auto-reloaded with .env support
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
   ],
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   server: {
     proxy: {
       // Flightradar24 zone feed proxy to bypass CORS during local dev

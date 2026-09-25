@@ -1,12 +1,12 @@
 import React from 'react'
 import {
   Search,
-  Filter,
   X,
   PlaneTakeoff,
   PlaneLanding,
   Building2,
   Check,
+  MapPin,
 } from 'lucide-react'
 import { FlightFilters } from '../../types/flight'
 import { AIRLINES } from '../../data/airlines'
@@ -16,6 +16,8 @@ interface FilterBarProps {
   onFiltersChange: (filters: FlightFilters) => void
   totalCount: number
   filteredCount: number
+  showAirportCodes: boolean
+  onToggleAirportCodes: () => void
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -23,12 +25,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onFiltersChange,
   totalCount,
   filteredCount,
+  showAirportCodes,
+  onToggleAirportCodes,
 }) => {
   const isFiltered =
     Boolean(filters.searchQuery.trim()) ||
     Boolean(filters.airlineIcao) ||
     Boolean(filters.originAirport.trim()) ||
     Boolean(filters.destAirport.trim()) ||
+    Boolean(filters.airportCode) ||
     filters.hideOnGround
 
   const handleClearAll = () => {
@@ -38,6 +43,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       airlineIcao: '',
       originAirport: '',
       destAirport: '',
+      airportCode: undefined,
       hideOnGround: false,
     })
   }
@@ -109,6 +115,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         />
       </div>
 
+      {/* Active Airport Hub Filter Badge */}
+      {filters.airportCode && (
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/50 text-sky-200 font-mono text-xs">
+          <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <span>Hub: <strong className="text-white">{filters.airportCode}</strong></span>
+          <button
+            onClick={() => onFiltersChange({ ...filters, airportCode: undefined })}
+            className="text-sky-300 hover:text-white ml-0.5 p-0.5 rounded hover:bg-sky-500/30 transition-colors"
+            title={`Clear ${filters.airportCode} hub filter`}
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
       {/* Hide On-Ground Toggle */}
       <button
         onClick={() => onFiltersChange({ ...filters, hideOnGround: !filters.hideOnGround })}
@@ -123,6 +144,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           {filters.hideOnGround && <Check className="w-2.5 h-2.5 stroke-[3]" />}
         </span>
         Airborne Only
+      </button>
+
+      {/* Airport Codes Toggle */}
+      <button
+        onClick={onToggleAirportCodes}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${
+          showAirportCodes
+            ? 'bg-sky-500/20 border-sky-500/50 text-sky-300 font-medium'
+            : 'bg-slate-900 border-slate-700/80 text-slate-400 hover:text-slate-200'
+        }`}
+        title="Toggle visibility of airport codes on the map"
+      >
+        <span className={`w-3.5 h-3.5 rounded flex items-center justify-center border ${showAirportCodes ? 'bg-sky-500 border-sky-400 text-white' : 'border-slate-600'}`}>
+          {showAirportCodes && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+        </span>
+        <MapPin className="w-3 h-3 text-sky-400" />
+        Airport Codes
       </button>
 
       {/* Filter summary & Clear button */}

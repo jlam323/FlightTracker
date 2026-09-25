@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react'
-import { Flight, FlightFilters } from './types/flight'
+import { Flight, FlightFilters, Airport } from './types/flight'
 import { useFlightFeed } from './hooks/useFlightFeed'
 import { usePinnedFlights } from './hooks/usePinnedFlights'
 import { filterFlights } from './services/filterService'
@@ -26,7 +26,7 @@ export const App: React.FC = () => {
     longitude: -98.5,
     latitude: 39.8,
     zoom: 4.2,
-    pitch: 35,
+    pitch: 0,
     bearing: 0,
   })
 
@@ -34,6 +34,11 @@ export const App: React.FC = () => {
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
   const [isPinnedDrawerOpen, setIsPinnedDrawerOpen] = useState(false)
   const [forceMockMode, setForceMockMode] = useState(false)
+  const [showAirportCodes, setShowAirportCodes] = useState(true)
+
+  const handleToggleAirportCodes = useCallback(() => {
+    setShowAirportCodes(prev => !prev)
+  }, [])
 
   // 4. Live Data Feed Hook (updates every 60s or manual refresh)
   const {
@@ -42,6 +47,7 @@ export const App: React.FC = () => {
     isLoading,
     isRefreshing,
     isMockMode,
+    activeSource,
     lastUpdated,
     refresh,
   } = useFlightFeed({
@@ -80,14 +86,25 @@ export const App: React.FC = () => {
     return flights.filter(f => idSet.has(f.id))
   }, [flights, pinnedIds])
 
-  // Camera Actions
+  // Check if search or route filters are actively filtering flights
+  const hasActiveFilter = useMemo(() => {
+    return Boolean(
+      filters.searchQuery.trim() ||
+      filters.airlineIcao ||
+      filters.originAirport.trim() ||
+      filters.destAirport.trim() ||
+      filters.airportCode
+    )
+  }, [filters])
+
+  // Camera Actions - Always maintain pure top-down perspective (pitch: 0)
   const handleFlyTo = useCallback((lat: number, lon: number, zoom = 7.5) => {
     setViewState(prev => ({
       ...prev,
       latitude: lat,
       longitude: lon,
       zoom,
-      pitch: 45,
+      pitch: 0,
     }))
   }, [])
 
@@ -96,12 +113,13 @@ export const App: React.FC = () => {
     handleFlyTo(flight.latitude, flight.longitude, Math.max(viewState.zoom, 6))
   }, [handleFlyTo, viewState.zoom])
 
-  const handleTogglePitch = useCallback(() => {
-    setViewState(prev => ({
+  const handleSelectAirport = useCallback((airport: Airport) => {
+    setFilters(prev => ({
       ...prev,
-      pitch: prev.pitch > 0 ? 0 : 45,
+      airportCode: airport.iata,
     }))
-  }, [])
+    handleFlyTo(airport.latitude, airport.longitude, 7.0)
+  }, [handleFlyTo])
 
   const handleResetBearing = useCallback(() => {
     setViewState(prev => ({
@@ -123,13 +141,15 @@ export const App: React.FC = () => {
       <Header
         filters={filters}
         onFiltersChange={setFilters}
-        flightCount={flights.length}
+        flightCount={filteredFlights.length}
+        totalFlightCount={flights.length}
         arcCount={filteredArcs.length}
         pinnedCount={pinnedIds.length}
         onTogglePinnedDrawer={() => setIsPinnedDrawerOpen(prev => !prev)}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
         isMockMode={isMockMode}
+        activeSource={activeSource}
         onToggleMockMode={() => setForceMockMode(prev => !prev)}
         lastUpdated={lastUpdated}
         onRefresh={refresh}
@@ -141,6 +161,8 @@ export const App: React.FC = () => {
         onFiltersChange={setFilters}
         totalCount={flights.length}
         filteredCount={filteredFlights.length}
+        showAirportCodes={showAirportCodes}
+        onToggleAirportCodes={handleToggleAirportCodes}
       />
 
       {/* 3. Main Deck.gl + MapLibre Map */}
@@ -148,19 +170,23 @@ export const App: React.FC = () => {
         flights={filteredFlights}
         arcs={filteredArcs}
         selectedFlightId={selectedFlightId || undefined}
+        selectedAirportCode={filters.airportCode}
         pinnedFlightIds={pinnedIds}
         onSelectFlight={handleSelectFlight}
+        onSelectAirport={handleSelectAirport}
         viewState={viewState}
         onViewStateChange={setViewState}
+        showAirportCodes={showAirportCodes}
+        hasActiveFilter={hasActiveFilter}
       />
 
       {/* 4. Map Camera & Hub Controls */}
       <MapControls
-        pitch={viewState.pitch}
-        onTogglePitch={handleTogglePitch}
         onResetBearing={handleResetBearing}
         onZoom={handleZoom}
         onFlyTo={handleFlyTo}
+        showAirportCodes={showAirportCodes}
+        onToggleAirportCodes={handleToggleAirportCodes}
       />
 
       {/* 5. Selected Flight Detail Inspector Drawer */}

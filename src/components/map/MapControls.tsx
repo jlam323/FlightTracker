@@ -1,12 +1,12 @@
 import React from 'react'
-import { Compass, Box, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { Compass, ZoomIn, ZoomOut, MapPin } from 'lucide-react'
 
 interface MapControlsProps {
-  pitch: number
-  onTogglePitch: () => void
   onResetBearing: () => void
   onZoom: (delta: number) => void
   onFlyTo: (lat: number, lon: number, zoom: number) => void
+  showAirportCodes?: boolean
+  onToggleAirportCodes?: () => void
 }
 
 const HUBS = [
@@ -20,11 +20,11 @@ const HUBS = [
 ]
 
 export const MapControls: React.FC<MapControlsProps> = ({
-  pitch,
-  onTogglePitch,
   onResetBearing,
   onZoom,
   onFlyTo,
+  showAirportCodes = true,
+  onToggleAirportCodes,
 }) => {
   return (
     <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2">
@@ -41,7 +41,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
         ))}
       </div>
 
-      {/* Camera Controls */}
+      {/* Camera & Overlay Controls */}
       <div className="flex items-center gap-1 bg-slate-950/85 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-xl w-fit">
         <button
           onClick={() => onZoom(0.5)}
@@ -58,21 +58,25 @@ export const MapControls: React.FC<MapControlsProps> = ({
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
-          onClick={onTogglePitch}
-          className={`p-1.5 rounded-lg transition-all ${
-            pitch > 0 ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-          }`}
-          title={pitch > 0 ? 'Switch to 2D Top-Down' : 'Switch to 3D Perspective (45°)'}
-        >
-          <Box className="w-4 h-4" />
-        </button>
-        <button
           onClick={onResetBearing}
           className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
           title="Reset North Orientation"
         >
           <Compass className="w-4 h-4" />
         </button>
+        {onToggleAirportCodes && (
+          <button
+            onClick={onToggleAirportCodes}
+            className={`p-1.5 rounded-lg transition-all ${
+              showAirportCodes
+                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title={showAirportCodes ? 'Hide Airport Codes (IATA)' : 'Show Airport Codes (IATA)'}
+          >
+            <MapPin className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   )

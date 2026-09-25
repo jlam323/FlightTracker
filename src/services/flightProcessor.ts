@@ -6,6 +6,8 @@ import {
   calculateTimeRemainingMinutes,
   calculateEta,
   calculateProgressPercent,
+  interpolateGreatCirclePoint,
+  calculateBearing,
 } from '../utils/geo'
 
 /**
@@ -101,6 +103,30 @@ export function parseRawFlight(id: string, raw: RawFr24Flight): Flight {
     }
   }
 
+  // Position airborne flights that have origin/destination along their Great-Circle Arc
+  let displayLat = lat
+  let displayLon = lon
+  let displayHeading = heading || 0
+
+  if (originAirport && destAirport && onGround !== 1) {
+    const fraction = (progressPercent ?? 50) / 100
+    const pointOnArc = interpolateGreatCirclePoint(
+      originAirport.latitude,
+      originAirport.longitude,
+      destAirport.latitude,
+      destAirport.longitude,
+      fraction
+    )
+    displayLat = pointOnArc.latitude
+    displayLon = pointOnArc.longitude
+    displayHeading = calculateBearing(
+      pointOnArc.latitude,
+      pointOnArc.longitude,
+      destAirport.latitude,
+      destAirport.longitude
+    )
+  }
+
   return {
     id: id || icao24,
     flightNumber: cleanFlightNum,
@@ -109,10 +135,10 @@ export function parseRawFlight(id: string, raw: RawFr24Flight): Flight {
     airlineName: airline?.name,
     aircraftModel: model || undefined,
     registration: registration || undefined,
-    latitude: lat,
-    longitude: lon,
+    latitude: displayLat,
+    longitude: displayLon,
     altitude: altitude || 0,
-    heading: heading || 0,
+    heading: displayHeading,
     speed: speed || 0,
     verticalSpeed: verticalSpeed || 0,
     squawk: squawk || undefined,
@@ -131,7 +157,7 @@ export function parseRawFlight(id: string, raw: RawFr24Flight): Flight {
 }
 
 /**
- * Builds 3D Great-Circle Flight Arcs for all active flights that have origin/destination
+ * Builds 3D Great-Circle Flight Arcs connecting Origin Airport -> Destination Airport
  */
 export function buildFlightArcs(flights: Flight[], highlightedFlightId?: string): FlightArc[] {
   const arcs: FlightArc[] = []
@@ -142,27 +168,19 @@ export function buildFlightArcs(flights: Flight[], highlightedFlightId?: string)
     const origin = flight.originAirport
     const dest = flight.destAirport
 
-    // If both origin and destination airports are known, generate complete route arc
+    // Generate complete Great-Circle arc from Origin -> Destination
     if (origin && dest) {
       arcs.push({
         id: `arc-${flight.id}`,
         flightId: flight.id,
         flightNumber: flight.flightNumber,
+        source: [origin.longitude, origin.latitude],
+        target: [dest.longitude, dest.latitude],
+        originIata: origin.iata,
+        destIata: dest.iata,
         flownSource: [origin.longitude, origin.latitude],
-        flownTarget: [flight.longitude, flight.latitude],
-        remSource: [flight.longitude, flight.latitude],
-        remTarget: [dest.longitude, dest.latitude],
-        isHighlighted: flight.id === highlightedFlightId,
-      })
-    } else if (dest) {
-      // If only destination is known, draw current -> destination
-      arcs.push({
-        id: `arc-${flight.id}`,
-        flightId: flight.id,
-        flightNumber: flight.flightNumber,
-        flownSource: [flight.longitude, flight.latitude],
-        flownTarget: [flight.longitude, flight.latitude],
-        remSource: [flight.longitude, flight.latitude],
+        flownTarget: [dest.longitude, dest.latitude],
+        remSource: [origin.longitude, origin.latitude],
         remTarget: [dest.longitude, dest.latitude],
         isHighlighted: flight.id === highlightedFlightId,
       })

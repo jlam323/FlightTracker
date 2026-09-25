@@ -298,3 +298,5 @@ export function getAirport(code?: string): Airport | undefined {
   // Try fast indexed ICAO lookup
   return ICAO_TO_AIRPORT[upper]
 }
+
+export const ALL_AIRPORTS: Airport[] = Object.values(AIRPORTS)

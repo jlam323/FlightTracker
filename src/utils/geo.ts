@@ -114,3 +114,72 @@ export function formatHeading(degrees: number): string {
   const padded = Math.round(degrees).toString().padStart(3, '0')
   return `${padded}° ${cardinal}`
 }
+
+/**
+ * Calculates intermediate coordinates along a Great-Circle path between two points
+ * fraction: 0 = start point, 1 = end point
+ * Spherical interpolation formula from: http://www.movable-type.co.uk/scripts/latlong.html
+ */
+export function interpolateGreatCirclePoint(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+  fraction: number
+): { latitude: number; longitude: number } {
+  const f = Math.max(0, Math.min(1, fraction))
+  if (f === 0) return { latitude: lat1, longitude: lon1 }
+  if (f === 1) return { latitude: lat2, longitude: lon2 }
+
+  const phi1 = toRadians(lat1)
+  const lambda1 = toRadians(lon1)
+  const phi2 = toRadians(lat2)
+  const lambda2 = toRadians(lon2)
+
+  const dLat = phi2 - phi1
+  const dLon = lambda2 - lambda1
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const delta = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  if (delta === 0) return { latitude: lat1, longitude: lon1 }
+
+  const A = Math.sin((1 - f) * delta) / Math.sin(delta)
+  const B = Math.sin(f * delta) / Math.sin(delta)
+
+  const x = A * Math.cos(phi1) * Math.cos(lambda1) + B * Math.cos(phi2) * Math.cos(lambda2)
+  const y = A * Math.cos(phi1) * Math.sin(lambda1) + B * Math.cos(phi2) * Math.sin(lambda2)
+  const z = A * Math.sin(phi1) + B * Math.sin(phi2)
+
+  const phi3 = Math.atan2(z, Math.sqrt(x * x + y * y))
+  const lambda3 = Math.atan2(y, x)
+
+  return {
+    latitude: Number(toDegrees(phi3).toFixed(4)),
+    longitude: Number(toDegrees(lambda3).toFixed(4)),
+  }
+}
+
+/**
+ * Calculates bearing from point 1 to point 2 in degrees (0 - 359)
+ */
+export function calculateBearing(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const phi1 = toRadians(lat1)
+  const phi2 = toRadians(lat2)
+  const deltaLambda = toRadians(lon2 - lon1)
+
+  const y = Math.sin(deltaLambda) * Math.cos(phi2)
+  const x =
+    Math.cos(phi1) * Math.sin(phi2) -
+    Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda)
+
+  const theta = Math.atan2(y, x)
+  return Math.round((toDegrees(theta) + 360) % 360)
+}

@@ -5,9 +5,9 @@ import {
   Globe,
   MapPin,
   Radio,
-  SlidersHorizontal,
   Bookmark,
   Sparkles,
+  Clock,
 } from 'lucide-react'
 import { FlightFilters } from '../../types/flight'
 
@@ -15,12 +15,14 @@ interface HeaderProps {
   filters: FlightFilters
   onFiltersChange: (filters: FlightFilters) => void
   flightCount: number
+  totalFlightCount?: number
   arcCount: number
   pinnedCount: number
   onTogglePinnedDrawer: () => void
   isLoading: boolean
   isRefreshing: boolean
   isMockMode: boolean
+  activeSource?: 'fr24' | 'opensky' | 'mock'
   onToggleMockMode: () => void
   lastUpdated: Date | null
   onRefresh: () => void
@@ -30,12 +32,14 @@ export const Header: React.FC<HeaderProps> = ({
   filters,
   onFiltersChange,
   flightCount,
+  totalFlightCount,
   arcCount,
   pinnedCount,
   onTogglePinnedDrawer,
   isLoading,
   isRefreshing,
   isMockMode,
+  activeSource = 'fr24',
   onToggleMockMode,
   lastUpdated,
   onRefresh,
@@ -44,7 +48,8 @@ export const Header: React.FC<HeaderProps> = ({
     Boolean(filters.searchQuery.trim()) ||
     Boolean(filters.airlineIcao) ||
     Boolean(filters.originAirport.trim()) ||
-    Boolean(filters.destAirport.trim())
+    Boolean(filters.destAirport.trim()) ||
+    Boolean(filters.airportCode)
 
   const handleRegionToggle = (newRegion: 'north_america' | 'global') => {
     onFiltersChange({
@@ -67,10 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <h1 className="text-base font-bold tracking-tight text-slate-100 flex items-center gap-2">
-              SkyTrack Live
-              <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                Live Radar
-              </span>
+              SkyTrack
             </h1>
           </div>
         </div>
@@ -79,7 +81,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/90 border border-slate-800 px-3 py-1 rounded-full">
           <span className="flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span className="text-slate-100 font-semibold">{flightCount.toLocaleString()}</span> Active
+            <span className="text-slate-100 font-semibold">{flightCount.toLocaleString()}</span>
+            {totalFlightCount !== undefined && totalFlightCount !== flightCount && (
+              <span className="text-slate-500 font-normal">/{totalFlightCount.toLocaleString()}</span>
+            )}{' '}
+            Active
           </span>
           <span className="text-slate-600">•</span>
           <span className="flex items-center gap-1">
@@ -110,13 +116,13 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'bg-sky-600 text-white font-semibold shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
           }`}
-          title={isFilterActive ? 'Global View' : 'Global view is optimized when a filter is applied'}
+          title={isFilterActive ? 'Global View' : 'Global view has capped flight counts without a filter'}
         >
           <Globe className="w-3.5 h-3.5" />
           Global
           {!isFilterActive && (
             <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-normal border border-amber-500/30">
-              Filtered
+              Capped
             </span>
           )}
         </button>
@@ -124,19 +130,55 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Controls: Mock Mode Toggle, Pinned, Refresh */}
       <div className="flex items-center gap-2">
-        {/* Mock Data Toggle */}
+        {/* Mock / Live Data Source Indicator & Toggle */}
         <button
           onClick={onToggleMockMode}
-          title="Toggle Simulated Dev Feed vs Live ADS-B"
+          title={
+            isMockMode
+              ? 'Currently in Simulated Mode. Click to switch to Live ADS-B'
+              : `Active Feed: ${
+                  activeSource === 'fr24'
+                    ? 'Flightradar24'
+                    : activeSource === 'opensky'
+                    ? 'OpenSky Network'
+                    : 'Simulated'
+                }. Click to switch to Simulated Mode.`
+          }
           className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono border transition-all ${
             isMockMode
               ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+              : activeSource === 'opensky'
+              ? 'bg-sky-500/15 border-sky-500/40 text-sky-300 hover:bg-sky-500/25'
               : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
           }`}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${isMockMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-          {isMockMode ? 'Simulated Feed' : 'Live ADS-B'}
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isMockMode
+                ? 'bg-amber-400'
+                : activeSource === 'opensky'
+                ? 'bg-sky-400 animate-pulse'
+                : 'bg-emerald-400 animate-pulse'
+            }`}
+          />
+          {isMockMode
+            ? 'Simulated Feed'
+            : activeSource === 'opensky'
+            ? 'Live: OpenSky'
+            : 'Live: FR24'}
         </button>
+
+        {/* Last Updated Timestamp */}
+        <div
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono bg-slate-900/90 border border-slate-800 text-slate-400"
+          title={lastUpdated ? `APIs last called at ${lastUpdated.toLocaleTimeString()}` : 'Live data not yet fetched'}
+        >
+          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <span className="text-slate-400 hidden md:inline">Updated:</span>
+          <span className="text-slate-200 font-semibold">
+            {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Loading...'}
+          </span>
+        </div>
 
         {/* Pinned Flights Button */}
         <button
