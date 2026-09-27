@@ -1,6 +1,7 @@
 import { TextLayer } from '@deck.gl/layers'
 import { Flight } from '../../../types/flight'
 import { PALETTE } from '../../../constants/palette'
+import { getFlightPosition, getFlightOdText } from './layerUtils'
 
 export interface FlightOdLabelsLayerProps {
   flights: Flight[]
@@ -30,13 +31,9 @@ export function createFlightOdLabelsLayer({
 
   const data = targetFlights
     .map(f => {
-      const orig = f.originIata || f.originAirport?.iata || null
-      const dest = f.destIata || f.destAirport?.iata || null
-      if (!orig && !dest) return null
-      return {
-        ...f,
-        odText: `${orig || '---'} → ${dest || '---'}`,
-      }
+      const odText = getFlightOdText(f)
+      if (!odText) return null
+      return { ...f, odText }
     })
     .filter((item): item is Flight & { odText: string } => item !== null)
 
@@ -45,15 +42,7 @@ export function createFlightOdLabelsLayer({
   return new TextLayer<Flight & { odText: string }>({
     id: 'flights-od-labels',
     data,
-    getPosition: d => {
-      if (d.onGround) {
-        const airport = d.originAirport || d.destAirport
-        if (airport) {
-          return [airport.longitude, airport.latitude, 0]
-        }
-      }
-      return [d.longitude, d.latitude, 0]
-    },
+    getPosition: getFlightPosition,
     getText: d => d.odText,
     getSize: 12,
     getColor: PALETTE.TEXT_OD,

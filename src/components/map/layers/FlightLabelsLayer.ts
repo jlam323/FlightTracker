@@ -1,6 +1,7 @@
 import { TextLayer } from '@deck.gl/layers'
 import { Flight } from '../../../types/flight'
 import { PALETTE } from '../../../constants/palette'
+import { getFlightPosition, createFlightSearchMatcher, isFlightHighlighted } from './layerUtils'
 
 export interface FlightLabelsLayerProps {
   flights: Flight[]
@@ -9,7 +10,6 @@ export interface FlightLabelsLayerProps {
   hoveredFlightId: string | null
   pinnedSet: Set<string>
   searchQuery?: string
-  selectedAirportCode?: string
   onClickFlight?: (info: { object?: unknown }) => void
   onHoverFlight?: (info: { object?: unknown }) => void
 }
@@ -21,35 +21,17 @@ export function createFlightLabelsLayer({
   hoveredFlightId,
   pinnedSet,
   searchQuery,
-  selectedAirportCode,
   onClickFlight,
   onHoverFlight,
 }: FlightLabelsLayerProps): TextLayer<Flight> | null {
-  const hasSearch = Boolean(searchQuery?.trim())
-  const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
-  const cleanAirport = selectedAirportCode?.trim().toUpperCase()
+  const isSearchMatch = createFlightSearchMatcher(searchQuery)
 
   const labelFlights = flights.filter(f => {
-    const matchesSearch = hasSearch && (
-      f.flightNumber.toUpperCase().includes(cleanQuery) ||
-      f.callsign.toUpperCase().includes(cleanQuery) ||
-      Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
-      f.id.toUpperCase().includes(cleanQuery)
-    )
-
-    const matchesAirport = cleanAirport && (
-      f.originIata?.toUpperCase() === cleanAirport ||
-      f.destIata?.toUpperCase() === cleanAirport ||
-      f.originAirport?.iata.toUpperCase() === cleanAirport ||
-      f.destAirport?.iata.toUpperCase() === cleanAirport
-    )
-
-    if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) return false
-    if (matchesSearch) return true
-    if (f.id === selectedFlightId || f.id === hoveredFlightId || pinnedSet.has(f.id)) return true
-    if (matchesAirport) return shouldShowFlightLabels
-    if (shouldShowFlightLabels) return true
-    return false
+    if (f.id === hoveredFlightId || isFlightHighlighted(f, selectedFlightId, pinnedSet, isSearchMatch)) {
+      return true
+    }
+    if (f.onGround) return false
+    return shouldShowFlightLabels
   })
 
   if (labelFlights.length === 0) return null
@@ -57,25 +39,17 @@ export function createFlightLabelsLayer({
   return new TextLayer<Flight>({
     id: 'flights-labels',
     data: labelFlights,
-    getPosition: d => {
-      if (d.onGround) {
-        const airport = d.originAirport || d.destAirport
-        if (airport) {
-          return [airport.longitude, airport.latitude, 0]
-        }
-      }
-      return [d.longitude, d.latitude, 0]
-    },
+    getPosition: getFlightPosition,
     getText: d => d.flightNumber,
     getSize: 12,
     getColor: d => {
-      if (d.id === selectedFlightId || d.id === hoveredFlightId) return PALETTE.YELLOW
+      if (d.id === selectedFlightId || d.id === hoveredFlightId || isSearchMatch(d)) return PALETTE.YELLOW
       return PALETTE.TEXT_DEFAULT
     },
     getTextAnchor: 'middle',
     getAlignmentBaseline: 'top',
     getPixelOffset: d => {
-      if (d.id === selectedFlightId) return [0, 20]
+      if (d.id === selectedFlightId || isSearchMatch(d)) return [0, 20]
       if (d.id === hoveredFlightId) return [0, 18]
       return [0, 16]
     },
@@ -90,8 +64,8 @@ export function createFlightLabelsLayer({
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
       getPosition: [selectedFlightId, searchQuery],
-      getColor: [selectedFlightId, hoveredFlightId],
-      getPixelOffset: [selectedFlightId, hoveredFlightId],
+      getColor: [selectedFlightId, hoveredFlightId, searchQuery],
+      getPixelOffset: [selectedFlightId, hoveredFlightId, searchQuery],
     },
   })
 }

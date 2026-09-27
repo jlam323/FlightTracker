@@ -81,8 +81,8 @@ export function filterFlights(
       }
     }
 
-    // 5. Airline filter
-    if (filters.airlineIcao) {
+    // 5. Airline filter (bypassed if flight matches user's active search query)
+    if (!matchesSearch && filters.airlineIcao) {
       const airlineCode = filters.airlineIcao.toUpperCase()
       const matchAirline = flight.airlineIcao?.toUpperCase() === airlineCode
       const matchCallsignPrefix = flight.callsign.startsWith(airlineCode)
@@ -91,8 +91,8 @@ export function filterFlights(
       }
     }
 
-    // 6. Origin airport filter
-    if (filters.originAirport.trim()) {
+    // 6. Origin airport filter (bypassed if flight matches user's active search query)
+    if (!matchesSearch && filters.originAirport.trim()) {
       const orig = filters.originAirport.trim().toUpperCase()
       const matchIata = flight.originIata?.toUpperCase() === orig
       const matchIcao = flight.originAirport?.icao.toUpperCase() === orig
@@ -101,8 +101,8 @@ export function filterFlights(
       }
     }
 
-    // 7. Destination airport filter
-    if (filters.destAirport.trim()) {
+    // 7. Destination airport filter (bypassed if flight matches user's active search query)
+    if (!matchesSearch && filters.destAirport.trim()) {
       const dest = filters.destAirport.trim().toUpperCase()
       const matchIata = flight.destIata?.toUpperCase() === dest
       const matchIcao = flight.destAirport?.icao.toUpperCase() === dest
@@ -111,8 +111,8 @@ export function filterFlights(
       }
     }
 
-    // 8. Airport filter (either Origin OR Destination)
-    if (filters.airportCode && filters.airportCode.trim()) {
+    // 8. Airport filter (bypassed if flight matches user's active search query)
+    if (!matchesSearch && filters.airportCode && filters.airportCode.trim()) {
       const airport = filters.airportCode.trim().toUpperCase()
       const matchOrigIata = flight.originIata?.toUpperCase() === airport
       const matchOrigIcao = flight.originAirport?.icao.toUpperCase() === airport

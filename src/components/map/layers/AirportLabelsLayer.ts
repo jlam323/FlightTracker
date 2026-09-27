@@ -1,7 +1,7 @@
 import { TextLayer } from '@deck.gl/layers'
 import { Airport, Flight } from '../../../types/flight'
 import { ALL_AIRPORTS } from '../../../data/airports'
-import { PALETTE } from '../../../constants/palette'
+import { PALETTE, ColorRGBA } from '../../../constants/palette'
 import { MAJOR_HUB_IATAS } from '../mapConstants'
 import { getAirportColor } from './airportColor'
 
@@ -40,6 +40,8 @@ export function createAirportLabelsLayer({
 
   if (visibleAirports.length === 0) return null
 
+  const cleanSelectedAirport = selectedAirportCode?.toUpperCase()
+
   const colorContext = {
     hoveredAirportIata,
     selectedFlight,
@@ -51,23 +53,38 @@ export function createAirportLabelsLayer({
     data: visibleAirports,
     getPosition: d => [d.longitude, d.latitude, 0],
     getText: d => d.iata,
-    getSize: d => (selectedAirportIatas.has(d.iata) ? 12 : 10),
+    getSize: d => (selectedAirportIatas.has(d.iata) || d.iata === hoveredAirportIata ? 12 : 11),
     getColor: d => getAirportColor(d.iata, false, colorContext),
     getTextAnchor: 'middle',
-    getAlignmentBaseline: 'top',
-    getPixelOffset: [0, 8],
-    fontFamily: 'monospace',
+    getAlignmentBaseline: 'bottom',
+    // Position cleanly above the airport dot so it never collides with airplanes or flight labels below
+    getPixelOffset: [0, -9],
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
     fontWeight: 'bold',
     background: true,
-    getBackgroundColor: PALETTE.DARK_BG,
-    backgroundPadding: [3, 1],
+    getBackgroundColor: d => {
+      if (d.iata === hoveredAirportIata) return [15, 23, 42, 245] as ColorRGBA
+      if (cleanSelectedAirport && d.iata === cleanSelectedAirport) return [15, 23, 42, 240] as ColorRGBA
+      return [15, 23, 42, 215] as ColorRGBA
+    },
+    getBorderColor: d => {
+      if (d.iata === hoveredAirportIata) return PALETTE.WHITE_RIM
+      if (cleanSelectedAirport && d.iata === cleanSelectedAirport) return PALETTE.YELLOW
+      if (selectedAirportIatas.has(d.iata)) return PALETTE.CYAN
+      return [56, 189, 248, 140] as ColorRGBA // Crisp cyan pill badge border
+    },
+    getBorderWidth: 1,
+    backgroundBorderRadius: 4,
+    backgroundPadding: [5, 2],
     pickable: true,
     onClick: onClickAirport,
     onHover: onHoverAirport,
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
-      getSize: [selectedAirportIatas],
+      getSize: [selectedAirportIatas, hoveredAirportIata],
       getColor: [selectedFlight?.originIata, selectedFlight?.destIata, selectedAirportCode, hoveredAirportIata],
+      getBorderColor: [selectedAirportIatas, selectedAirportCode, hoveredAirportIata],
+      getBackgroundColor: [hoveredAirportIata, selectedAirportCode],
     },
   })
 }

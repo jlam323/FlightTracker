@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import {
   RefreshCw,
   Globe,
-  MapPin,
   Radio,
   Bookmark,
   Clock,

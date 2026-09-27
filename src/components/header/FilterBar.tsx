@@ -19,6 +19,7 @@ interface FilterBarProps {
   flights: Flight[]
   pinnedIds?: string[]
   isAirportViewOpen?: boolean
+  onSelectFlight?: (flight: Flight) => void
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -27,6 +28,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   flights,
   pinnedIds = [],
   isAirportViewOpen = false,
+  onSelectFlight,
 }) => {
 
   const isFiltered =
@@ -62,6 +64,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           type="text"
           value={filters.searchQuery}
           onChange={e => onFiltersChange({ ...filters, searchQuery: e.target.value })}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              const q = filters.searchQuery.trim().toUpperCase()
+              if (!q) return
+              const match = flights.find(f =>
+                f.flightNumber.toUpperCase() === q ||
+                f.callsign.toUpperCase() === q ||
+                f.id.toUpperCase() === q ||
+                f.flightNumber.toUpperCase().includes(q) ||
+                f.callsign.toUpperCase().includes(q) ||
+                Boolean(f.registration?.toUpperCase().includes(q))
+              )
+              if (match && onSelectFlight) {
+                onSelectFlight(match)
+              }
+            }
+          }}
           placeholder="Flight ID (e.g. DL1234)"
           className="w-full bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-7 pr-6 py-1.5 text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 transition-all font-mono tracking-tight text-xs"
         />

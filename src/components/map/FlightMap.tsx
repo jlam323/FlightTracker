@@ -16,6 +16,10 @@ import {
   createAirplaneIconsLayer,
   createFlightLabelsLayer,
   createFlightOdLabelsLayer,
+  getFlightPosition,
+  createFlightSearchMatcher,
+  shouldRenderFlight,
+  getFlightOdText,
 } from './layers'
 
 interface FlightMapProps {
@@ -37,7 +41,6 @@ interface FlightMapProps {
   }
   onViewStateChange: (viewState: any) => void
   showAirportCodes?: boolean
-  hasActiveFilter?: boolean
   searchQuery?: string
 }
 
@@ -52,7 +55,6 @@ export const FlightMap: React.FC<FlightMapProps> = ({
   viewState,
   onViewStateChange,
   showAirportCodes = true,
-  hasActiveFilter = false,
   searchQuery,
 }) => {
   const pinnedSet = useMemo(() => new Set(pinnedFlightIds), [pinnedFlightIds])
@@ -73,34 +75,13 @@ export const FlightMap: React.FC<FlightMapProps> = ({
         pitch: 0,
         bearing: viewState.bearing || 0,
       })
-      const [minLon, minLat, maxLon, maxLat] = vp.getBounds()
-
-      const hasSearch = Boolean(searchQuery?.trim())
-      const cleanQuery = hasSearch ? searchQuery!.trim().toUpperCase() : ''
-      const cleanAirport = selectedAirportCode?.trim().toUpperCase()
+      const isSearchMatch = createFlightSearchMatcher(searchQuery)
 
       let count = 0
       for (const f of flights) {
-        const matchesSearch = hasSearch && (
-          f.flightNumber.toUpperCase().includes(cleanQuery) ||
-          f.callsign.toUpperCase().includes(cleanQuery) ||
-          Boolean(f.registration?.toUpperCase().includes(cleanQuery)) ||
-          f.id.toUpperCase().includes(cleanQuery)
-        )
-        const matchesAirport = cleanAirport && (
-          f.originIata?.toUpperCase() === cleanAirport ||
-          f.destIata?.toUpperCase() === cleanAirport ||
-          f.originAirport?.iata.toUpperCase() === cleanAirport ||
-          f.destAirport?.iata.toUpperCase() === cleanAirport
-        )
-        if (f.onGround && f.id !== selectedFlightId && !matchesSearch && !pinnedSet.has(f.id) && !matchesAirport) continue
+        if (!shouldRenderFlight(f, selectedFlightId, pinnedSet, isSearchMatch)) continue
 
-        const lat = f.onGround && (f.originAirport || f.destAirport)
-          ? (f.originAirport || f.destAirport)!.latitude
-          : f.latitude
-        const lon = f.onGround && (f.originAirport || f.destAirport)
-          ? (f.originAirport || f.destAirport)!.longitude
-          : f.longitude
+        const [lon, lat] = getFlightPosition(f)
 
         let isVisible = false
         for (const offset of [0, -360, 360]) {
@@ -121,7 +102,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     } catch {
       return flights.length
     }
-  }, [flights, selectedFlightId, pinnedSet, searchQuery, selectedAirportCode, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
+  }, [flights, selectedFlightId, pinnedSet, searchQuery, viewState.longitude, viewState.latitude, viewState.zoom, viewState.bearing])
 
   // Dynamically scale max aircraft allowed for displaying flight IDs with zoom level
   const maxPlanesForLabels = useMemo(() => {
@@ -184,19 +165,6 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     return list
   }, [sortedFlights])
 
-  const renderedAllFlights = useMemo(() => {
-    const list: Flight[] = []
-    for (const f of flights) {
-      list.push(f)
-      if (f.longitude > 90) {
-        list.push({ ...f, longitude: f.longitude - 360 })
-      } else if (f.longitude < -90) {
-        list.push({ ...f, longitude: f.longitude + 360 })
-      }
-    }
-    return list
-  }, [flights])
-
   const renderedAirports = useMemo(() => {
     const list: Airport[] = []
     for (const a of ALL_AIRPORTS) {
@@ -254,6 +222,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       selectedAirportIatas,
       hoveredAirportIata,
       selectedFlight,
+      zoom: viewState.zoom,
       onClickAirport: handleAirportClick,
       onHoverAirport: handleAirportHover,
     })
@@ -271,9 +240,10 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     })
 
     const highlightRingLayer = createHighlightRingsLayer({
-      flights: renderedAllFlights,
+      flights: renderedFlights,
       selectedFlightId,
       pinnedSet,
+      searchQuery,
     })
 
     const airplaneIconLayer = createAirplaneIconsLayer({
@@ -283,7 +253,6 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       pinnedSet,
       bearing: viewState.bearing,
       searchQuery,
-      selectedAirportCode,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -295,7 +264,6 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       hoveredFlightId,
       pinnedSet,
       searchQuery,
-      selectedAirportCode,
       onClickFlight: handleFlightClick,
       onHoverFlight: handleFlightHover,
     })
@@ -312,10 +280,10 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       bordersLayer,
       ...arcLayers,
       airportDotsLayer,
-      ...(airportLabelsLayer ? [airportLabelsLayer] : []),
       ...(highlightRingLayer ? [highlightRingLayer] : []),
       airplaneIconLayer,
       ...(textLayer ? [textLayer] : []),
+      ...(airportLabelsLayer ? [airportLabelsLayer] : []),
       ...(flightOdLayer ? [flightOdLayer] : []),
     ]
   }, [
@@ -329,7 +297,6 @@ export const FlightMap: React.FC<FlightMapProps> = ({
     showAirportCodes,
     viewState.zoom,
     viewState.bearing,
-    renderedAllFlights,
     pinnedSet,
     renderedFlights,
     hoveredFlightId,
@@ -387,13 +354,12 @@ export const FlightMap: React.FC<FlightMapProps> = ({
           // Hovering a Flight: 2-line clean card showing Flight ID and Origin -> Destination
           if (object.flightNumber) {
             const f = object as Flight
-            const originStr = f.originIata || f.originAirport?.iata || '---'
-            const destStr = f.destIata || f.destAirport?.iata || '---'
+            const odText = getFlightOdText(f) || '--- → ---'
             return {
               html: `
                 <div style="font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.4; padding: 5px 8px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(250, 204, 21, 0.6); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);">
                   <div style="font-weight: 700; color: #facc15; font-size: 12px; letter-spacing: 0.02em;">${f.flightNumber}</div>
-                  <div style="color: #e2e8f0; font-weight: 500;">${originStr} → ${destStr}</div>
+                  <div style="color: #e2e8f0; font-weight: 500;">${odText}</div>
                 </div>
               `,
             }

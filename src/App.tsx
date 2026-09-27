@@ -139,20 +139,6 @@ export const App: React.FC = () => {
     return baseArcs
   }, [arcs, activeFlightIdSet, filteredFlights, filters.searchQuery, filters.pinnedOnly, selectedFlightId])
 
-  // Check if search or route filters are actively filtering flights
-  const hasActiveFilter = useMemo(() => {
-    return Boolean(
-      filters.searchQuery.trim() ||
-      filters.airlineIcao ||
-      filters.originAirport.trim() ||
-      filters.destAirport.trim() ||
-      filters.airportCode ||
-      filters.pinnedOnly ||
-      (filters.flightStates && filters.flightStates.length > 0)
-    )
-  }, [filters])
-
-
   // Camera Actions - Always maintain pure top-down perspective (pitch: 0)
   const handleFlyTo = useCallback((lat: number, lon: number, zoom = 7.5) => {
     setViewState(prev => ({
@@ -258,6 +244,7 @@ export const App: React.FC = () => {
         flights={flights}
         pinnedIds={pinnedIds}
         isAirportViewOpen={Boolean(selectedAirport)}
+        onSelectFlight={handleSelectFlight}
       />
 
 
@@ -275,7 +262,6 @@ export const App: React.FC = () => {
         viewState={viewState}
         onViewStateChange={handleViewStateChange}
         showAirportCodes={showAirportCodes}
-        hasActiveFilter={hasActiveFilter}
         searchQuery={filters.searchQuery}
       />
 

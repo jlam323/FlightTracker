@@ -1,38 +1,35 @@
 import { ScatterplotLayer } from '@deck.gl/layers'
 import { Flight } from '../../../types/flight'
 import { PALETTE } from '../../../constants/palette'
+import { getFlightPosition, createFlightSearchMatcher, isFlightHighlighted } from './layerUtils'
 
 export interface HighlightRingsLayerProps {
   flights: Flight[]
   selectedFlightId?: string
   pinnedSet: Set<string>
+  searchQuery?: string
 }
 
 export function createHighlightRingsLayer({
   flights,
   selectedFlightId,
   pinnedSet,
+  searchQuery,
 }: HighlightRingsLayerProps): ScatterplotLayer<Flight> | null {
-  const highlightedFlights = flights.filter(
-    f => f.id === selectedFlightId || pinnedSet.has(f.id)
+  const isSearchMatch = createFlightSearchMatcher(searchQuery)
+
+  const highlightedFlights = flights.filter(f =>
+    isFlightHighlighted(f, selectedFlightId, pinnedSet, isSearchMatch)
   )
   if (highlightedFlights.length === 0) return null
 
   return new ScatterplotLayer<Flight>({
     id: 'flights-selection-rings',
     data: highlightedFlights,
-    getPosition: d => {
-      if (d.onGround) {
-        const airport = d.originAirport || d.destAirport
-        if (airport) {
-          return [airport.longitude, airport.latitude, 0]
-        }
-      }
-      return [d.longitude, d.latitude, 0]
-    },
-    getRadius: d => (d.id === selectedFlightId ? 16000 : 12000),
-    getFillColor: d => (d.id === selectedFlightId ? PALETTE.YELLOW_GLOW_FILL : PALETTE.AMBER_GLOW_FILL),
-    getLineColor: d => (d.id === selectedFlightId ? PALETTE.YELLOW_GLOW_LINE : PALETTE.AMBER_GLOW_LINE),
+    getPosition: getFlightPosition,
+    getRadius: d => (d.id === selectedFlightId || isSearchMatch(d) ? 16000 : 12000),
+    getFillColor: d => (d.id === selectedFlightId || isSearchMatch(d) ? PALETTE.YELLOW_GLOW_FILL : PALETTE.AMBER_GLOW_FILL),
+    getLineColor: d => (d.id === selectedFlightId || isSearchMatch(d) ? PALETTE.YELLOW_GLOW_LINE : PALETTE.AMBER_GLOW_LINE),
     lineWidthMinPixels: 2,
     stroked: true,
     filled: true,
@@ -41,7 +38,10 @@ export function createHighlightRingsLayer({
     pickable: false,
     parameters: { depthCompare: 'always' as const, depthWriteEnabled: false },
     updateTriggers: {
-      getPosition: [selectedFlightId],
+      getPosition: [selectedFlightId, searchQuery],
+      getRadius: [selectedFlightId, searchQuery],
+      getFillColor: [selectedFlightId, searchQuery],
+      getLineColor: [selectedFlightId, searchQuery],
     },
   })
 }
