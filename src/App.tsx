@@ -285,6 +285,7 @@ export const App: React.FC = () => {
         isPinned={selectedFlight ? isPinned(selectedFlight.id) : false}
         onTogglePin={(id, f) => togglePin(id, f || selectedFlight || undefined)}
         onFocusCamera={(lat, lon) => handleFlyTo(lat, lon, 7)}
+        onSelectAirport={handleSelectAirport}
       />
 
       {/* 6. Airport Detail Inspector Drawer */}

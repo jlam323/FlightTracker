@@ -14,7 +14,8 @@ import {
   LocateFixed,
   MapPin,
 } from 'lucide-react'
-import { Flight } from '../../types/flight'
+import { Flight, Airport } from '../../types/flight'
+import { getAirport } from '../../data/airports'
 import {
   formatDuration,
   formatAltitude,
@@ -29,6 +30,7 @@ interface FlightDetailDrawerProps {
   isPinned: boolean
   onTogglePin: (flightId: string, flight?: Flight) => void
   onFocusCamera: (lat: number, lon: number) => void
+  onSelectAirport?: (airport: Airport) => void
 }
 
 export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
@@ -37,6 +39,7 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
   isPinned,
   onTogglePin,
   onFocusCamera,
+  onSelectAirport,
 }) => {
   if (!flight) return null
 
@@ -65,8 +68,8 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
     )
   }
 
-  const origin = flight.originAirport
-  const dest = flight.destAirport
+  const origin = flight.originAirport || getAirport(flight.originIata)
+  const dest = flight.destAirport || getAirport(flight.destIata)
 
   return (
     <aside className="absolute top-0 right-0 bottom-0 z-30 w-full sm:w-[400px] bg-[#0c0d12]/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl flex flex-col text-neutral-100 overflow-y-auto animate-in slide-in-from-right duration-200">
@@ -134,17 +137,38 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
         {/* Origin -> Destination Banner */}
         <div className="flex items-center justify-between gap-3 text-center">
           {/* Origin */}
-          <div className="flex-1 text-left">
-            <span className="text-2xl font-bold font-mono text-sky-300">
-              {flight.originIata || '---'}
-            </span>
-            <p className="text-xs font-medium text-neutral-200 truncate mt-0.5">
-              {origin?.city || 'Origin'}
-            </p>
-            <p className="text-[11px] text-neutral-500 truncate">
-              {origin?.name || 'Airport'}
-            </p>
-          </div>
+          {origin && onSelectAirport ? (
+            <button
+              type="button"
+              onClick={() => onSelectAirport(origin)}
+              className="group flex-1 text-left p-1.5 -m-1.5 rounded-lg transition-all hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+              title={`View ${origin.name} (${origin.iata}) airport radar`}
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-2xl font-bold font-mono text-sky-300 group-hover:text-sky-200 group-hover:underline decoration-sky-400/50 underline-offset-2 transition-colors">
+                  {flight.originIata || origin.iata}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-neutral-200 group-hover:text-white truncate mt-0.5 transition-colors">
+                {origin.city || 'Origin'}
+              </p>
+              <p className="text-[11px] text-neutral-500 group-hover:text-neutral-400 truncate transition-colors">
+                {origin.name || 'Airport'}
+              </p>
+            </button>
+          ) : (
+            <div className="flex-1 text-left">
+              <span className="text-2xl font-bold font-mono text-sky-300">
+                {flight.originIata || '---'}
+              </span>
+              <p className="text-xs font-medium text-neutral-200 truncate mt-0.5">
+                {origin?.city || 'Origin'}
+              </p>
+              <p className="text-[11px] text-neutral-500 truncate">
+                {origin?.name || 'Airport'}
+              </p>
+            </div>
+          )}
 
           {/* Plane Icon */}
           <div className="flex flex-col items-center px-2">
@@ -155,17 +179,38 @@ export const FlightDetailDrawer: React.FC<FlightDetailDrawerProps> = ({
           </div>
 
           {/* Destination */}
-          <div className="flex-1 text-right">
-            <span className="text-2xl font-bold font-mono text-rose-300">
-              {flight.destIata || '---'}
-            </span>
-            <p className="text-xs font-medium text-neutral-200 truncate mt-0.5">
-              {dest?.city || 'Destination'}
-            </p>
-            <p className="text-[11px] text-neutral-500 truncate">
-              {dest?.name || 'Airport'}
-            </p>
-          </div>
+          {dest && onSelectAirport ? (
+            <button
+              type="button"
+              onClick={() => onSelectAirport(dest)}
+              className="group flex-1 text-right p-1.5 -m-1.5 rounded-lg transition-all hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 cursor-pointer focus:outline-none focus:ring-1 focus:ring-rose-500/30"
+              title={`View ${dest.name} (${dest.iata}) airport radar`}
+            >
+              <div className="flex items-center justify-end gap-1.5">
+                <span className="text-2xl font-bold font-mono text-rose-300 group-hover:text-rose-200 group-hover:underline decoration-rose-400/50 underline-offset-2 transition-colors">
+                  {flight.destIata || dest.iata}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-neutral-200 group-hover:text-white truncate mt-0.5 transition-colors">
+                {dest.city || 'Destination'}
+              </p>
+              <p className="text-[11px] text-neutral-500 group-hover:text-neutral-400 truncate transition-colors">
+                {dest.name || 'Airport'}
+              </p>
+            </button>
+          ) : (
+            <div className="flex-1 text-right">
+              <span className="text-2xl font-bold font-mono text-rose-300">
+                {flight.destIata || '---'}
+              </span>
+              <p className="text-xs font-medium text-neutral-200 truncate mt-0.5">
+                {dest?.city || 'Destination'}
+              </p>
+              <p className="text-[11px] text-neutral-500 truncate">
+                {dest?.name || 'Airport'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Progress Bar */}
