@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Search,
   X,
@@ -10,7 +10,7 @@ import {
   BookmarkCheck,
 } from 'lucide-react'
 import { Flight, FlightFilters } from '../../types/flight'
-import { SORTED_AIRLINES } from '../../data/airlines'
+import { NORTH_AMERICA_AIRLINES, GLOBAL_AIRLINES, getAirline } from '../../data/airlines'
 import { FlightStateFilter } from './FlightStateFilter'
 
 interface FilterBarProps {
@@ -30,6 +30,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   isAirportViewOpen = false,
   onSelectFlight,
 }) => {
+  // If region is North America, automatically clear any selected Global airline
+  useEffect(() => {
+    if (filters.region === 'north_america' && filters.airlineIcao) {
+      const selected = getAirline(filters.airlineIcao)
+      if (selected && selected.category === 'global') {
+        onFiltersChange({ ...filters, airlineIcao: '' })
+      }
+    }
+  }, [filters, onFiltersChange])
 
   const isFiltered =
     Boolean(filters.searchQuery.trim()) ||
@@ -103,11 +112,30 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="bg-neutral-900/90 border border-white/[0.08] focus:border-neutral-500 rounded-[5px] pl-7 pr-6 py-1.5 text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-500/20 transition-all appearance-none cursor-pointer text-xs"
         >
           <option value="">All Airlines</option>
-          {SORTED_AIRLINES.map(a => (
-            <option key={a.icao} value={a.icao}>
-              {a.name} ({a.icao})
-            </option>
-          ))}
+          {filters.region === 'north_america' ? (
+            NORTH_AMERICA_AIRLINES.map(a => (
+              <option key={a.icao} value={a.icao}>
+                {a.name} ({a.icao})
+              </option>
+            ))
+          ) : (
+            <>
+              <optgroup label="North America" className="bg-neutral-950 font-semibold text-neutral-300">
+                {NORTH_AMERICA_AIRLINES.map(a => (
+                  <option key={a.icao} value={a.icao} className="bg-neutral-900 font-normal text-neutral-200">
+                    {a.name} ({a.icao})
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Global" className="bg-neutral-950 font-semibold text-neutral-300">
+                {GLOBAL_AIRLINES.map(a => (
+                  <option key={a.icao} value={a.icao} className="bg-neutral-900 font-normal text-neutral-200">
+                    {a.name} ({a.icao})
+                  </option>
+                ))}
+              </optgroup>
+            </>
+          )}
         </select>
       </div>
 

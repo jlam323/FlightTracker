@@ -8,6 +8,7 @@ import {
   Redo,
 } from 'lucide-react'
 import { FlightFilters } from '../../types/flight'
+import { getAirline } from '../../data/airlines'
 import {
   getRefreshCooldownRemainingSeconds,
   recordRefreshInCookie,
@@ -56,9 +57,12 @@ export const Header: React.FC<HeaderProps> = ({
     Boolean(filters.flightStates && filters.flightStates.length > 0)
 
   const handleRegionToggle = (newRegion: 'north_america' | 'global') => {
+    const selectedAirline = filters.airlineIcao ? getAirline(filters.airlineIcao) : undefined
+    const shouldResetAirline = newRegion === 'north_america' && selectedAirline?.category === 'global'
     onFiltersChange({
       ...filters,
       region: newRegion,
+      ...(shouldResetAirline ? { airlineIcao: '' } : {}),
     })
   }
 
