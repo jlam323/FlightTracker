@@ -4,9 +4,9 @@ import { WebMercatorViewport } from '@deck.gl/core'
 import Map from 'react-map-gl/maplibre'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Flight, FlightArc, Airport } from '../../types/flight'
+import { Flight, FlightArc, Airport, MapTheme } from '../../types/flight'
 import { ALL_AIRPORTS } from '../../data/airports'
-import { CARTO_DARK_RASTER_STYLE, CARTO_API_KEY } from './mapConstants'
+import { CARTO_DARK_RASTER_STYLE, CARTO_LIGHT_RASTER_STYLE, CARTO_API_KEY } from './mapConstants'
 import {
   createCountryBordersLayer,
   createRouteArcsLayer,
@@ -42,6 +42,7 @@ interface FlightMapProps {
   onViewStateChange: (viewState: any) => void
   showAirportCodes?: boolean
   searchQuery?: string
+  mapTheme?: MapTheme
 }
 
 export const FlightMap: React.FC<FlightMapProps> = ({
@@ -56,6 +57,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
   onViewStateChange,
   showAirportCodes = true,
   searchQuery,
+  mapTheme = 'dark',
 }) => {
   const pinnedSet = useMemo(() => new Set(pinnedFlightIds), [pinnedFlightIds])
   const [hoveredFlightId, setHoveredFlightId] = useState<string | null>(null)
@@ -322,7 +324,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
   }, [])
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`relative w-full h-full ${mapTheme === 'light' ? 'bg-[#f1f5f9]' : 'bg-slate-950'}`}>
       <DeckGL
         viewState={viewState}
         onViewStateChange={e => onViewStateChange(e.viewState)}
@@ -369,7 +371,7 @@ export const FlightMap: React.FC<FlightMapProps> = ({
       >
         <Map
           mapLib={maplibregl}
-          mapStyle={CARTO_DARK_RASTER_STYLE}
+          mapStyle={mapTheme === 'light' ? CARTO_LIGHT_RASTER_STYLE : CARTO_DARK_RASTER_STYLE}
           transformRequest={transformRequest}
           attributionControl={false}
           maxPitch={0}

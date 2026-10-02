@@ -53,3 +53,32 @@ export const CARTO_DARK_RASTER_STYLE: StyleSpecification = {
     },
   ],
 }
+
+// High-performance light raster basemap (CARTO Positron)
+export const CARTO_LIGHT_RASTER_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    'carto-light': {
+      type: 'raster',
+      tiles: [
+        `https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png${apiKeyParam}`,
+        `https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png${apiKeyParam}`,
+        `https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png${apiKeyParam}`,
+        `https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png${apiKeyParam}`,
+      ],
+      tileSize: 256,
+      attribution:
+        '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-light-layer',
+      type: 'raster',
+      source: 'carto-light',
+      minzoom: 0,
+      maxzoom: 20,
+    },
+  ],
+}
+

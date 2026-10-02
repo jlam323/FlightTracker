@@ -1,12 +1,14 @@
 import React from 'react'
-import { ZoomIn, ZoomOut, MapPin } from 'lucide-react'
-import { Airport } from '../../types/flight'
+import { ZoomIn, ZoomOut, MapPin, Sun, Moon } from 'lucide-react'
+import { Airport, MapTheme } from '../../types/flight'
 
 interface MapControlsProps {
   onZoom: (delta: number) => void
   onFlyTo: (lat: number, lon: number, zoom: number) => void
   showAirportCodes?: boolean
   onToggleAirportCodes?: () => void
+  mapTheme?: MapTheme
+  onToggleMapTheme?: () => void
   bookmarkedAirports?: Airport[]
   selectedAirportIata?: string
   onSelectAirport?: (airport: Airport) => void
@@ -18,6 +20,8 @@ export const MapControls: React.FC<MapControlsProps> = ({
   onFlyTo,
   showAirportCodes = true,
   onToggleAirportCodes,
+  mapTheme = 'dark',
+  onToggleMapTheme,
   bookmarkedAirports = [],
   selectedAirportIata,
   onSelectAirport,
@@ -100,14 +104,41 @@ export const MapControls: React.FC<MapControlsProps> = ({
                   ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
                   : 'text-neutral-400 hover:text-white hover:bg-neutral-800 border-transparent'
               }`}
+              title={showAirportCodes ? 'Hide Airport Codes (IATA)' : 'Show Airport Codes (IATA)'}
               aria-label={showAirportCodes ? 'Hide Airport Codes (IATA)' : 'Show Airport Codes (IATA)'}
             >
               <MapPin className="w-3.5 h-3.5" />
             </button>
             {/* Custom Tooltip */}
-            <div className="pointer-events-none absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#0c0d12]/95 px-2 py-1 text-[11px] text-neutral-200 border border-white/[0.08] shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-150 z-30 flex items-center gap-1.5 font-mono">
+            <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0c0d12]/95 px-2 py-1 text-[11px] text-neutral-200 border border-white/[0.08] shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-150 z-30 flex items-center gap-1.5 font-mono">
               <span>
                 {showAirportCodes ? 'Hide Airport Codes' : 'Show Airport Codes'}
+              </span>
+            </div>
+          </div>
+        )}
+        {onToggleMapTheme && (
+          <div className="relative group flex items-center">
+            <button
+              onClick={onToggleMapTheme}
+              className={`p-1.5 rounded-[4px] transition-all cursor-pointer border ${
+                mapTheme === 'light'
+                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  : 'text-neutral-400 hover:text-white hover:bg-neutral-800 border-transparent'
+              }`}
+              title={mapTheme === 'light' ? 'Switch to Dark Map Tiles' : 'Switch to Light Map Tiles'}
+              aria-label={mapTheme === 'light' ? 'Switch to Dark Map Tiles' : 'Switch to Light Map Tiles'}
+            >
+              {mapTheme === 'light' ? (
+                <Sun className="w-3.5 h-3.5" />
+              ) : (
+                <Moon className="w-3.5 h-3.5" />
+              )}
+            </button>
+            {/* Custom Tooltip */}
+            <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0c0d12]/95 px-2 py-1 text-[11px] text-neutral-200 border border-white/[0.08] shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-150 z-30 flex items-center gap-1.5 font-mono">
+              <span>
+                {mapTheme === 'light' ? 'Map Tiles: Light' : 'Map Tiles: Dark'}
               </span>
             </div>
           </div>

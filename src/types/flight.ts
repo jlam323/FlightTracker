@@ -95,3 +95,4 @@ export interface FlightFilters {
 
 export type FlightSource = 'fr24' | 'opensky' | 'mock'
 export type DataSourceMode = 'live' | 'mock'
+export type MapTheme = 'dark' | 'light'

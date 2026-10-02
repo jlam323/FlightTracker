@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react'
-import { Flight, FlightFilters, Airport } from './types/flight'
+import { Flight, FlightFilters, Airport, MapTheme } from './types/flight'
+import { getCookie, setCookie } from './utils/cookies'
 import { useFlightFeed } from './hooks/useFlightFeed'
 import { usePinnedFlights } from './hooks/usePinnedFlights'
 import { useBookmarkedAirports } from './hooks/useBookmarkedAirports'
@@ -40,9 +41,22 @@ export const App: React.FC = () => {
   const [isPinnedDrawerOpen, setIsPinnedDrawerOpen] = useState(false)
   const [forceMockMode, setForceMockMode] = useState(false)
   const [showAirportCodes, setShowAirportCodes] = useState(true)
+  // Map Basemap Tile Theme: defaults to 'dark'
+  const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
+    const saved = getCookie('flight_tracker_map_theme')
+    return saved === 'light' ? 'light' : 'dark'
+  })
 
   const handleToggleAirportCodes = useCallback(() => {
     setShowAirportCodes(prev => !prev)
+  }, [])
+
+  const handleToggleMapTheme = useCallback(() => {
+    setMapTheme(prev => {
+      const next: MapTheme = prev === 'dark' ? 'light' : 'dark'
+      setCookie('flight_tracker_map_theme', next)
+      return next
+    })
   }, [])
 
   // 4. Live Data Feed Hook (updates every 60s or manual refresh)
@@ -263,6 +277,7 @@ export const App: React.FC = () => {
         onViewStateChange={handleViewStateChange}
         showAirportCodes={showAirportCodes}
         searchQuery={filters.searchQuery}
+        mapTheme={mapTheme}
       />
 
       {/* 4. Map Camera & Hub Controls */}
@@ -271,6 +286,8 @@ export const App: React.FC = () => {
         onFlyTo={handleFlyTo}
         showAirportCodes={showAirportCodes}
         onToggleAirportCodes={handleToggleAirportCodes}
+        mapTheme={mapTheme}
+        onToggleMapTheme={handleToggleMapTheme}
         bookmarkedAirports={bookmarkedAirports}
         selectedAirportIata={selectedAirport?.iata}
         onSelectAirport={handleSelectAirport}
